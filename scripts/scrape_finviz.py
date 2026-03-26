@@ -49,7 +49,7 @@ def _fetch_finviz_news(ticker: str) -> tuple[str, list[dict[str, str]]]:
 def main(
     tickers: list[str] = typer.Option(["AAPL", "MSFT", "NVDA"], help="Tickers to scrape"),
     out_dir: str = typer.Option(
-        "/Users/arian/Downloads/Trading/downloads_misc",
+        "downloads_misc",
         help="Directory for raw HTML + parsed CSV outputs",
     ),
 ) -> None:

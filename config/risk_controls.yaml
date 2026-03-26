@@ -1,0 +1,7 @@
+min_approval_rate: 0.60
+max_predicted_shortfall_bps: 20.0
+max_daily_loss: 0.03
+max_symbol_exposure: 0.25
+max_portfolio_exposure: 1.0
+live_kill_switch_enabled: true
+require_orders: true

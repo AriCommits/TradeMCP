@@ -16,6 +16,7 @@ class RobinhoodCryptoConfig:
     accounts_endpoint: str
     holdings_endpoint: str
     orders_endpoint: str
+    fills_endpoint: str
     api_key_env: str | None
     api_secret_env: str | None
     bearer_token_env: str | None
@@ -31,6 +32,7 @@ class RobinhoodCryptoConfig:
             accounts_endpoint=str(raw.get("accounts_endpoint", "/api/v1/crypto/trading/accounts/")),
             holdings_endpoint=str(raw.get("holdings_endpoint", "/api/v1/crypto/trading/holdings/")),
             orders_endpoint=str(raw.get("orders_endpoint", "/api/v1/crypto/trading/orders/")),
+            fills_endpoint=str(raw.get("fills_endpoint", "/api/v1/crypto/trading/orders/")),
             api_key_env=raw.get("api_key_env"),
             api_secret_env=raw.get("api_secret_env"),
             bearer_token_env=raw.get("bearer_token_env"),
@@ -81,6 +83,9 @@ class RobinhoodCryptoAdapter:
         response.raise_for_status()
         return response.json()
 
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_accounts()
+
     def get_holdings(self) -> dict[str, Any]:
         response = requests.get(
             self._url(self.config.holdings_endpoint),
@@ -89,6 +94,45 @@ class RobinhoodCryptoAdapter:
         )
         response.raise_for_status()
         return response.json()
+
+    def get_positions(self) -> dict[str, Any]:
+        return self.get_holdings()
+
+    def get_open_orders(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "robinhood_crypto", "dry_run": True, "orders": []}
+
+        response = requests.get(
+            self._url(self.config.orders_endpoint),
+            headers=self._auth_headers(),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            orders = payload.get("results") if isinstance(payload.get("results"), list) else payload.get("orders")
+            if isinstance(orders, list):
+                payload["orders"] = [o for o in orders if str(o.get("state", "")).lower() in {"queued", "open", "pending"}]
+                return payload
+        return {"orders": []}
+
+    def get_recent_fills(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "robinhood_crypto", "dry_run": True, "fills": []}
+
+        response = requests.get(
+            self._url(self.config.fills_endpoint),
+            headers=self._auth_headers(),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            orders = payload.get("results") if isinstance(payload.get("results"), list) else payload.get("orders")
+            if isinstance(orders, list):
+                fills = [o for o in orders if str(o.get("state", "")).lower() in {"filled", "executed"}]
+                return {"fills": fills}
+        return {"fills": []}
 
     def place_order(
         self,
@@ -133,3 +177,44 @@ class RobinhoodCryptoAdapter:
         )
         response.raise_for_status()
         return response.json() if response.content else {"status": "cancelled", "order_id": order_id}
+
+    def close_position(self, symbol: str, qty: float | str = "all") -> dict[str, Any]:
+        payload = {"symbol": symbol, "qty": qty, "action": "close_position"}
+        if self.config.dry_run:
+            return {"adapter": "robinhood_crypto", "dry_run": True, "payload": payload}
+
+        quantity: float
+        if qty == "all":
+            holdings = self.get_holdings()
+            rows = holdings.get("results") if isinstance(holdings, dict) else None
+            quantity = 0.0
+            if isinstance(rows, list):
+                for row in rows:
+                    if str(row.get("symbol", "")).upper() == symbol.upper():
+                        quantity = float(row.get("quantity") or 0.0)
+                        break
+        else:
+            quantity = float(qty)
+
+        if quantity <= 0:
+            return {"adapter": "robinhood_crypto", "status": "no_position", "symbol": symbol}
+
+        return self.place_order(symbol=symbol, side="sell", quantity=quantity)
+
+    def close_all_positions(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "robinhood_crypto", "dry_run": True, "closed": []}
+
+        holdings = self.get_holdings()
+        rows = holdings.get("results") if isinstance(holdings, dict) else None
+        if not isinstance(rows, list):
+            return {"adapter": "robinhood_crypto", "closed": []}
+
+        closed: list[dict[str, Any]] = []
+        for row in rows:
+            symbol = str(row.get("symbol", "")).strip()
+            quantity = float(row.get("quantity") or 0.0)
+            if not symbol or quantity <= 0:
+                continue
+            closed.append(self.place_order(symbol=symbol, side="sell", quantity=quantity))
+        return {"adapter": "robinhood_crypto", "closed": closed}

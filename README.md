@@ -2,6 +2,8 @@
 
 Python research + visualization stack with a Rust execution backend.
 
+> Disclaimer: This repository was primarily built with generative AI assistance and then iteratively reviewed and refined by a human maintainer.
+
 ## Architecture
 
 - `src/trading/data_ingestion.py` (Module A): interpolation, log returns, robust scaling, parquet I/O
@@ -17,7 +19,7 @@ Python research + visualization stack with a Rust execution backend.
 ## Quick start
 
 ```bash
-cd /Users/arian/Downloads/Trading
+cd /Users/arian/Downloads/TradeMCP
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .[dev]
@@ -34,7 +36,7 @@ Build Rust execution backend:
 ```bash
 cd backend/rust_exec_engine
 cargo build --release
-cd /Users/arian/Downloads/Trading
+cd /Users/arian/Downloads/TradeMCP
 ```
 
 Run pipeline:
@@ -60,7 +62,7 @@ streamlit run src/trading/app.py
 
 All webscrape byproducts are written under:
 
-- `/Users/arian/Downloads/Trading/downloads_misc`
+- `downloads_misc`
 
 Run scraper:
 
@@ -90,7 +92,7 @@ Adapter routing (loose-coupling intermediary API):
 
 Architecture plans:
 
-- `docs/arcchitecture/arch_plan_01.md`
+- `docs/architecture/arch_plan_01.md`
 
 ## License
 

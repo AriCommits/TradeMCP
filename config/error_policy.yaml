@@ -1,0 +1,4 @@
+verbosity: verbose
+retain_traceback: true
+retry_policy: none
+artifact_path: artifacts/errors

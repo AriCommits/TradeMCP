@@ -6,7 +6,7 @@ from trading.adapters import BrokerRouter, build_router_from_config_dir
 
 
 def test_router_loads_adapters_from_config_dir() -> None:
-    cfg_dir = Path("/Users/arian/Downloads/Trading/config/integrations/adapters")
+    cfg_dir = Path(__file__).resolve().parents[2] / "config/integrations/adapters"
     router = build_router_from_config_dir(cfg_dir)
     names = router.registered()
     assert set(names) == {
@@ -21,7 +21,7 @@ def test_router_loads_adapters_from_config_dir() -> None:
 def test_router_dispatches_submit_and_cancel(monkeypatch) -> None:
     monkeypatch.setenv("TRADINGVIEW_WEBHOOK_URL", "https://example.com/webhook")
 
-    cfg_dir = Path("/Users/arian/Downloads/Trading/config/integrations/adapters")
+    cfg_dir = Path(__file__).resolve().parents[2] / "config/integrations/adapters"
     router = build_router_from_config_dir(cfg_dir)
 
     fidelity_res = router.submit_order(
@@ -42,10 +42,23 @@ def test_router_dispatches_submit_and_cancel(monkeypatch) -> None:
 
 def test_router_ping_all(monkeypatch) -> None:
     monkeypatch.setenv("TRADINGVIEW_WEBHOOK_URL", "https://example.com/webhook")
-    cfg_dir = Path("/Users/arian/Downloads/Trading/config/integrations/adapters")
+    cfg_dir = Path(__file__).resolve().parents[2] / "config/integrations/adapters"
     router = build_router_from_config_dir(cfg_dir)
     ping = router.ping_all()
 
     assert "tradingview" in ping
     assert "gemini" in ping
     assert "forex_com" in ping
+
+
+def test_router_capabilities_and_open_orders(monkeypatch) -> None:
+    monkeypatch.setenv("TRADINGVIEW_WEBHOOK_URL", "https://example.com/webhook")
+    cfg_dir = Path(__file__).resolve().parents[2] / "config/integrations/adapters"
+    router = build_router_from_config_dir(cfg_dir)
+
+    caps = router.capabilities("robinhood_crypto").result
+    assert caps["submit_order"] is True
+    assert caps["close_position"] is True
+
+    open_orders = router.get_open_orders("robinhood_crypto").result
+    assert isinstance(open_orders, dict)

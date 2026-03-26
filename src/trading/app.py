@@ -11,7 +11,7 @@ import streamlit as st
 st.set_page_config(page_title="Trading Pipeline Dashboard", layout="wide")
 st.title("Modular Quant Trading Diagnostics")
 
-artifacts_dir = Path(os.environ.get("TRADING_ARTIFACTS_DIR", "/Users/arian/Downloads/Trading/artifacts"))
+artifacts_dir = Path(os.environ.get("TRADING_ARTIFACTS_DIR", "artifacts"))
 st.caption(f"Artifacts: {artifacts_dir}")
 
 metrics_path = artifacts_dir / "metrics.json"

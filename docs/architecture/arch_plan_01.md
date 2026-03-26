@@ -155,7 +155,7 @@ Introduce a typing standard for all Python modules:
 - `pyright` in CI as secondary checker
 - `ruff` typing-related rules enabled
 - Deliverables:
-- `docs/arcchitecture/typing_roadmap.md` with file-by-file migration checklist
+- `docs/architecture/typing_roadmap.md` with file-by-file migration checklist
 - CI job that fails on new untyped public APIs
 
 ## GPU Compute Support
@@ -303,3 +303,26 @@ Each adapter should implement:
 
 7. Multi-market strategy deepening:
 - Add incremental strategy packs and market-specific execution models
+
+## Implementation Summary (codex_1, 2026-03-26)
+
+Implemented in this iteration:
+
+- Added strategy registry + ranked research orchestration (`StrategyRegistry`, `ResearchOrchestrator`).
+- Added operational services for review, PnL snapshots, and execution controls (`ReviewService`, `PnLService`, `ExecutionControlService`).
+- Added atomic order lifecycle coordinator with explicit states (`OrderTransactionCoordinator`) and append-only audit logging.
+- Added verbose Python error taxonomy and structured error artifact persistence (`ValidationError`, `DataError`, `ComputeError`, `ExecutionError`, `BrokerError`, `persist_error_report`).
+- Added compute backend abstraction with device detection/fallback (`auto|cpu|cuda|mps`).
+- Added unified Typer CLI workflow for `analyze`, `suggest`, `simulate`, `review`, `execute`, `pnl`, `close`, `terminate`, and `compute-info`.
+- Added MCP workflow scaffold exposing `research_asset`, `rank_strategies`, `run_walkforward`, `review_trade`, `submit_order_intent`, `get_current_pnl`, `close_positions`, `terminate_run`.
+- Expanded broker router + adapters with close/cancel/open-order/fills/balance/positions capabilities and capability profiling support.
+- Added config files for risk controls, pnl, compute, typing, error policy, and execution controls.
+- Normalized key runtime/config defaults away from machine-specific absolute paths to repo-relative defaults.
+- Added coverage for new router/service behavior in tests; full local suite passed: `9 passed`.
+
+Planned but not fully complete yet:
+
+- Full strict typing coverage across all modules.
+- CI gating for `mypy` + `pyright`.
+- GPU acceleration integrated into heavy compute paths with parity tests.
+- Full two-step interactive countdown/hotkey UX for terminal order confirmation.

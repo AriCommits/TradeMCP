@@ -5,7 +5,7 @@
 #
 # Keep credentials in environment variables referenced by those files.
 
-adapters_dir: /Users/arian/Downloads/Trading/config/integrations/adapters
+adapters_dir: config/integrations/adapters
 
 adapter_files:
   - tradingview.yaml

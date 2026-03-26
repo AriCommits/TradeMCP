@@ -1,0 +1,13 @@
+enforcement:
+  mode: staged
+  core_package: warn
+  adapters: warn
+  scripts: warn
+  tests: warn
+mypy:
+  check_untyped_defs: true
+  warn_return_any: true
+  warn_unused_ignores: true
+pyright:
+  level: basic
+  fail_on_new_errors: true

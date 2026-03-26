@@ -69,3 +69,39 @@ class FidelityActiveTraderAdapter:
 
     def list_order_tickets(self) -> list[str]:
         return [str(p) for p in sorted(self._ticket_dir.glob("fidelity_ticket_*.json"))]
+
+    def get_positions(self) -> dict[str, Any]:
+        return {"adapter": "fidelity_active_trader", "positions": [], "mode": "manual_ticket"}
+
+    def get_open_orders(self) -> dict[str, Any]:
+        tickets = self.list_order_tickets()
+        return {
+            "adapter": "fidelity_active_trader",
+            "orders": [{"order_id": Path(path).name, "ticket_path": path} for path in tickets],
+            "mode": "manual_ticket",
+        }
+
+    def get_balances(self) -> dict[str, Any]:
+        return {"adapter": "fidelity_active_trader", "balances": [], "mode": "manual_ticket"}
+
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_balances()
+
+    def get_recent_fills(self) -> dict[str, Any]:
+        return {"adapter": "fidelity_active_trader", "fills": [], "mode": "manual_ticket"}
+
+    def cancel_order(self, order_id: str) -> dict[str, Any]:
+        ticket = self._ticket_dir / order_id
+        if ticket.exists():
+            ticket.unlink()
+            return {"adapter": "fidelity_active_trader", "order_id": order_id, "status": "cancelled"}
+        return {"adapter": "fidelity_active_trader", "order_id": order_id, "status": "not_found"}
+
+    def close_position(self, symbol: str, qty: float | str = "all") -> dict[str, Any]:
+        side = "sell"
+        quantity = 0.0 if qty == "all" else float(qty)
+        ticket = self.create_order_ticket({"symbol": symbol, "side": side, "quantity": quantity, "qty_mode": qty})
+        return {"adapter": "fidelity_active_trader", "status": "pending_manual_submission", "ticket": ticket}
+
+    def close_all_positions(self) -> dict[str, Any]:
+        return {"adapter": "fidelity_active_trader", "status": "manual_required", "detail": "close all via active trader UI"}

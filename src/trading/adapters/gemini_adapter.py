@@ -21,6 +21,8 @@ class GeminiConfig:
     base_url: str
     symbols_endpoint: str
     balances_endpoint: str
+    open_orders_endpoint: str
+    recent_fills_endpoint: str
     order_new_endpoint: str
     order_cancel_endpoint: str
     api_key_env: str
@@ -42,6 +44,8 @@ class GeminiConfig:
             base_url=str(base),
             symbols_endpoint=str(raw.get("symbols_endpoint", "/v1/symbols")),
             balances_endpoint=str(raw.get("balances_endpoint", "/v1/balances")),
+            open_orders_endpoint=str(raw.get("open_orders_endpoint", "/v1/orders")),
+            recent_fills_endpoint=str(raw.get("recent_fills_endpoint", "/v1/mytrades")),
             order_new_endpoint=str(raw.get("order_new_endpoint", "/v1/order/new")),
             order_cancel_endpoint=str(raw.get("order_cancel_endpoint", "/v1/order/cancel")),
             api_key_env=str(raw.get("api_key_env", "GEMINI_API_KEY")),
@@ -139,6 +143,46 @@ class GeminiAdapter:
         response.raise_for_status()
         return response.json()
 
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_balances()
+
+    def get_positions(self) -> dict[str, Any]:
+        return self.get_balances()
+
+    def get_open_orders(self) -> dict[str, Any]:
+        payload = {
+            "request": self.config.open_orders_endpoint,
+            "nonce": str(int(time.time() * 1000)),
+        }
+        if self.config.dry_run:
+            return {"adapter": "gemini", "dry_run": True, "orders": []}
+
+        response = requests.post(
+            self._url(self.config.open_orders_endpoint),
+            headers=self._signed_headers(payload),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return {"orders": data if isinstance(data, list) else []}
+
+    def get_recent_fills(self) -> dict[str, Any]:
+        payload = {
+            "request": self.config.recent_fills_endpoint,
+            "nonce": str(int(time.time() * 1000)),
+        }
+        if self.config.dry_run:
+            return {"adapter": "gemini", "dry_run": True, "fills": []}
+
+        response = requests.post(
+            self._url(self.config.recent_fills_endpoint),
+            headers=self._signed_headers(payload),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return {"fills": data if isinstance(data, list) else []}
+
     def place_order(
         self,
         symbol: str,
@@ -187,3 +231,70 @@ class GeminiAdapter:
         )
         response.raise_for_status()
         return response.json()
+
+    def close_position(self, symbol: str, qty: float | str = "all") -> dict[str, Any]:
+        if qty == "all":
+            if self.config.dry_run:
+                amount = "all"
+            else:
+                balances = self.get_balances()
+                amount = None
+                if isinstance(balances, list):
+                    for row in balances:
+                        if str(row.get("currency", "")).upper() in symbol.upper():
+                            available = row.get("available") or row.get("amount")
+                            if available is not None:
+                                amount = float(available)
+                                break
+                if amount is None:
+                    return {"adapter": "gemini", "status": "no_position", "symbol": symbol}
+        else:
+            amount = float(qty)
+
+        if self.config.dry_run:
+            return {
+                "adapter": "gemini",
+                "dry_run": True,
+                "action": "close_position",
+                "symbol": symbol,
+                "qty": amount,
+            }
+
+        if amount == "all":
+            return {"adapter": "gemini", "status": "unable_to_resolve_quantity", "symbol": symbol}
+
+        return self.place_order(
+            symbol=symbol.lower(),
+            side="sell",
+            amount=float(amount),
+            price=1.0,
+            order_type="exchange market",
+        )
+
+    def close_all_positions(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "gemini", "dry_run": True, "closed": []}
+
+        balances = self.get_balances()
+        if not isinstance(balances, list):
+            return {"adapter": "gemini", "closed": []}
+
+        closed: list[dict[str, Any]] = []
+        for row in balances:
+            currency = str(row.get("currency", "")).upper()
+            if currency in {"USD", "USDT", "USDC"}:
+                continue
+            amount = float(row.get("available") or row.get("amount") or 0.0)
+            if amount <= 0:
+                continue
+            symbol = f"{currency.lower()}usd"
+            closed.append(
+                self.place_order(
+                    symbol=symbol,
+                    side="sell",
+                    amount=amount,
+                    price=1.0,
+                    order_type="exchange market",
+                )
+            )
+        return {"adapter": "gemini", "closed": closed}

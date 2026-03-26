@@ -1,0 +1,9 @@
+atomicity_mode: strict
+confirmation_required: true
+countdown_seconds: 10
+hotkey: shift+p
+cancel_on_unrecognized_key: true
+max_symbol_exposure: 0.25
+max_portfolio_exposure: 1.0
+max_daily_loss: 0.03
+live_kill_switch_enabled: true

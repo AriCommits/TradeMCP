@@ -1,0 +1,4 @@
+device: auto
+precision_mode: float32
+memory_cap_mb: 4096
+batch_size: 1024

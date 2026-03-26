@@ -87,3 +87,29 @@ class TradingViewAdapter:
             "status_code": response.status_code,
             "ok": True,
         }
+
+    def get_positions(self) -> dict[str, Any]:
+        return {"adapter": "tradingview", "positions": [], "note": "not_supported_for_webhook_mode"}
+
+    def get_open_orders(self) -> dict[str, Any]:
+        return {"adapter": "tradingview", "orders": [], "note": "not_supported_for_webhook_mode"}
+
+    def get_balances(self) -> dict[str, Any]:
+        return {"adapter": "tradingview", "balances": [], "note": "not_supported_for_webhook_mode"}
+
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_balances()
+
+    def get_recent_fills(self) -> dict[str, Any]:
+        return {"adapter": "tradingview", "fills": [], "note": "not_supported_for_webhook_mode"}
+
+    def close_position(self, symbol: str, qty: float | str = "all") -> dict[str, Any]:
+        return {
+            "adapter": "tradingview",
+            "status": "not_supported_for_webhook_mode",
+            "symbol": symbol,
+            "qty": qty,
+        }
+
+    def close_all_positions(self) -> dict[str, Any]:
+        return {"adapter": "tradingview", "status": "not_supported_for_webhook_mode"}

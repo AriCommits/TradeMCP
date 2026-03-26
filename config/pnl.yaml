@@ -1,0 +1,3 @@
+quote_staleness_seconds: 30
+fee_bps: 1.0
+mark_source: last

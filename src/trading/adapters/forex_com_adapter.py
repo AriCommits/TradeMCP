@@ -15,7 +15,9 @@ class ForexComConfig:
     base_url: str
     auth_endpoint: str
     positions_endpoint: str
+    balances_endpoint: str
     orders_endpoint: str
+    fills_endpoint: str
     api_key_env: str | None
     username_env: str | None
     password_env: str | None
@@ -31,7 +33,9 @@ class ForexComConfig:
             base_url=str(raw.get("base_url", "https://api-demo.forex.com")),
             auth_endpoint=str(raw.get("auth_endpoint", "/session")),
             positions_endpoint=str(raw.get("positions_endpoint", "/positions")),
+            balances_endpoint=str(raw.get("balances_endpoint", "/accounts")),
             orders_endpoint=str(raw.get("orders_endpoint", "/orders")),
+            fills_endpoint=str(raw.get("fills_endpoint", "/fills")),
             api_key_env=raw.get("api_key_env"),
             username_env=raw.get("username_env"),
             password_env=raw.get("password_env"),
@@ -111,6 +115,53 @@ class ForexComAdapter:
         response.raise_for_status()
         return response.json()
 
+    def get_balances(self) -> dict[str, Any]:
+        response = requests.get(
+            self._url(self.config.balances_endpoint),
+            headers=self._headers(),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_balances()
+
+    def get_open_orders(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "forex_com", "dry_run": True, "orders": []}
+
+        response = requests.get(
+            self._url(self.config.orders_endpoint),
+            headers=self._headers(),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            rows = payload.get("orders") or payload.get("results")
+            if isinstance(rows, list):
+                payload["orders"] = [r for r in rows if str(r.get("status", "")).lower() in {"open", "working", "pending"}]
+                return payload
+        return {"orders": []}
+
+    def get_recent_fills(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "forex_com", "dry_run": True, "fills": []}
+
+        response = requests.get(
+            self._url(self.config.fills_endpoint),
+            headers=self._headers(),
+            timeout=self.config.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            rows = payload.get("fills") or payload.get("results")
+            if isinstance(rows, list):
+                return {"fills": rows}
+        return {"fills": []}
+
     def place_order(
         self,
         symbol: str,
@@ -154,3 +205,43 @@ class ForexComAdapter:
         )
         response.raise_for_status()
         return response.json() if response.content else {"status": "cancelled", "order_id": order_id}
+
+    def close_position(self, symbol: str, qty: float | str = "all") -> dict[str, Any]:
+        payload = {"symbol": symbol, "qty": qty, "action": "close_position"}
+        if self.config.dry_run:
+            return {"adapter": "forex_com", "dry_run": True, "payload": payload}
+
+        quantity: float
+        if qty == "all":
+            positions = self.get_positions()
+            rows = positions.get("positions") if isinstance(positions, dict) else None
+            quantity = 0.0
+            if isinstance(rows, list):
+                for row in rows:
+                    if str(row.get("symbol", "")).upper() == symbol.upper():
+                        quantity = float(row.get("quantity") or row.get("size") or 0.0)
+                        break
+        else:
+            quantity = float(qty)
+
+        if quantity <= 0:
+            return {"adapter": "forex_com", "status": "no_position", "symbol": symbol}
+        return self.place_order(symbol=symbol, side="sell", quantity=quantity)
+
+    def close_all_positions(self) -> dict[str, Any]:
+        if self.config.dry_run:
+            return {"adapter": "forex_com", "dry_run": True, "closed": []}
+
+        positions = self.get_positions()
+        rows = positions.get("positions") if isinstance(positions, dict) else None
+        if not isinstance(rows, list):
+            return {"adapter": "forex_com", "closed": []}
+
+        closed: list[dict[str, Any]] = []
+        for row in rows:
+            symbol = str(row.get("symbol", "")).strip()
+            quantity = float(row.get("quantity") or row.get("size") or 0.0)
+            if not symbol or quantity <= 0:
+                continue
+            closed.append(self.place_order(symbol=symbol, side="sell", quantity=quantity))
+        return {"adapter": "forex_com", "closed": closed}

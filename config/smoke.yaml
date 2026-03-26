@@ -39,8 +39,8 @@ risk:
   max_position_abs: 0.20
 
 execution:
-  backend_bin: /Users/arian/Downloads/Trading/backend/rust_exec_engine/target/release/rust_exec_engine
+  backend_bin: backend/rust_exec_engine/target/release/rust_exec_engine
   max_shortfall_bps: 35.0
 
 io:
-  scrape_dir: /Users/arian/Downloads/Trading/downloads_misc
+  scrape_dir: downloads_misc

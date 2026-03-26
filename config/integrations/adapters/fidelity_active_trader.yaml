@@ -1,4 +1,12 @@
 enabled: false
 account_label: Fidelity
-export_dir: /Users/arian/Downloads/Trading/artifacts/fidelity_tickets
+export_dir: artifacts/fidelity_tickets
 manual_review_required: true
+
+capabilities:
+  paper: true
+  live: false
+  submit_order: true
+  cancel_order: true
+  close_position: manual
+  close_all_positions: manual
