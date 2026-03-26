@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import random
 from typing import Any
 
 import numpy as np
@@ -12,7 +13,9 @@ from .data_ingestion import build_model_table, preprocess_ohlcv, robust_scale
 from .execution_client import apply_execution_filter
 from .forecasting import walk_forward_forecast
 from .indicators import add_indicators, select_model_indicator_features
+from .metadata import RunMetadata, build_run_metadata
 from .regime import discover_regimes
+from .reports import write_markdown_report
 from .risk import build_orders, summarize_performance
 from .volatility import forecast_cluster_volatility
 
@@ -78,7 +81,20 @@ def _align_vol_to_predictions(predictions: pd.DataFrame, vol: pd.DataFrame) -> p
     return pd.concat(out_parts, ignore_index=True)
 
 
-def run_pipeline(ohlcv: pd.DataFrame, config: dict[str, Any], output_dir: str | Path | None = None) -> dict[str, Any]:
+def _seed_everything(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+
+
+def run_pipeline(
+    ohlcv: pd.DataFrame,
+    config: dict[str, Any],
+    output_dir: str | Path | None = None,
+    run_metadata: RunMetadata | None = None,
+) -> dict[str, Any]:
+    seed = int(config.get("seed", 42))
+    _seed_everything(seed)
+
     processed = preprocess_ohlcv(ohlcv, vol_window=config["features"]["vol_window"])
 
     ind_cfg = config.get("indicators", {})
@@ -197,14 +213,20 @@ def run_pipeline(ohlcv: pd.DataFrame, config: dict[str, Any], output_dir: str | 
         "executed_orders": executed,
         "metrics": metrics,
     }
+    metadata = run_metadata or build_run_metadata(config=config, seed=seed)
+    result["run_metadata"] = metadata.to_dict()
 
     if output_dir is not None:
-        export_artifacts(result, output_dir)
+        export_artifacts(result, output_dir, run_metadata=metadata)
 
     return result
 
 
-def export_artifacts(result: dict[str, Any], output_dir: str | Path) -> None:
+def export_artifacts(
+    result: dict[str, Any],
+    output_dir: str | Path,
+    run_metadata: RunMetadata | None = None,
+) -> None:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -223,6 +245,17 @@ def export_artifacts(result: dict[str, Any], output_dir: str | Path) -> None:
 
     with open(out / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(result["metrics"], f, indent=2)
+
+    metadata_payload = run_metadata.to_dict() if run_metadata is not None else result.get("run_metadata", {})
+    with open(out / "run_metadata.json", "w", encoding="utf-8") as f:
+        json.dump(metadata_payload, f, indent=2)
+
+    write_markdown_report(
+        output_dir=out,
+        metrics=result["metrics"],
+        executed_orders=result["executed_orders"],
+        title="Pipeline Report",
+    )
 
     if os.environ.get("TRADING_ENABLE_MPL_PLOTS", "0") == "1":
         from .viz import save_equity_curve_plot, save_regime_vi_plot

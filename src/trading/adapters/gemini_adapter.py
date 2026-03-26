@@ -215,6 +215,19 @@ class GeminiAdapter:
         response.raise_for_status()
         return response.json()
 
+    def submit_order_intent(self, order: dict[str, Any]) -> dict[str, Any]:
+        amount = float(order.get("amount", order.get("quantity", 0.0)))
+        if amount <= 0:
+            raise ValueError("Gemini order requires positive amount/quantity")
+        return self.place_order(
+            symbol=str(order["symbol"]),
+            side=str(order["side"]),
+            amount=amount,
+            price=float(order.get("price", 1.0)),
+            order_type=str(order.get("order_type", "exchange limit")),
+            client_order_id=str(order["client_order_id"]) if "client_order_id" in order else None,
+        )
+
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         payload = {
             "request": self.config.order_cancel_endpoint,

@@ -1,0 +1,114 @@
+name: Python CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex_1
+  schedule:
+    - cron: "0 9 * * 1"
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check src scripts tests
+
+      - name: Tests
+        run: PYTHONPATH=src pytest -q
+
+  typing-changed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Collect changed python files
+        id: changed
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          elif git rev-parse HEAD~1 >/dev/null 2>&1; then
+            BASE_SHA="$(git rev-parse HEAD~1)"
+          else
+            BASE_SHA="$(git rev-list --max-parents=0 HEAD)"
+          fi
+
+          mapfile -t FILES < <(git diff --name-only "$BASE_SHA" HEAD -- '*.py')
+          {
+            echo "files<<EOF"
+            printf '%s\n' "${FILES[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Changed python files:"
+          printf '%s\n' "${FILES[@]}"
+
+      - name: Mypy (changed files)
+        shell: bash
+        run: |
+          files="${{ steps.changed.outputs.files }}"
+          if [[ -z "$files" ]]; then
+            echo "No changed python files."
+            exit 0
+          fi
+          echo "$files" | xargs mypy
+
+      - name: Pyright (changed files)
+        shell: bash
+        run: |
+          files="${{ steps.changed.outputs.files }}"
+          if [[ -z "$files" ]]; then
+            echo "No changed python files."
+            exit 0
+          fi
+          echo "$files" | xargs pyright
+
+  typing-full:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Mypy full (informational)
+        run: mypy src scripts tests
+      - name: Pyright full (informational)
+        run: pyright

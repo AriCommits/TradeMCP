@@ -7,6 +7,7 @@ from typing import Any
 from .fidelity_active_trader_adapter import FidelityActiveTraderAdapter
 from .forex_com_adapter import ForexComAdapter
 from .gemini_adapter import GeminiAdapter
+from .protocols import supports_execution, supports_read
 from .robinhood_crypto_adapter import RobinhoodCryptoAdapter
 from .tradingview_adapter import TradingViewAdapter
 
@@ -27,9 +28,9 @@ class BrokerRouter:
     """
 
     def __init__(self):
-        self._adapters: dict[str, Any] = {}
+        self._adapters: dict[str, object] = {}
 
-    def register(self, name: str, adapter: Any) -> None:
+    def register(self, name: str, adapter: object) -> None:
         self._adapters[name] = adapter
 
     def registered(self) -> list[str]:
@@ -38,7 +39,7 @@ class BrokerRouter:
     def ping_all(self) -> dict[str, Any]:
         out: dict[str, Any] = {}
         for name, adapter in self._adapters.items():
-            if hasattr(adapter, "ping"):
+            if supports_read(adapter):
                 out[name] = adapter.ping()
             else:
                 out[name] = {"adapter": name, "error": "ping_not_supported"}
@@ -47,10 +48,13 @@ class BrokerRouter:
     def submit_order(self, adapter_name: str, order: dict[str, Any]) -> RouterResult:
         adapter = self._adapters[adapter_name]
 
+        if supports_execution(adapter):
+            result = adapter.submit_order_intent(order)
+            return RouterResult(adapter=adapter_name, action="submit_order", result=result)
+
         if hasattr(adapter, "place_order"):
             result = adapter.place_order(**order)
             return RouterResult(adapter=adapter_name, action="submit_order", result=result)
-
         if hasattr(adapter, "create_order_ticket"):
             result = adapter.create_order_ticket(order)
             return RouterResult(adapter=adapter_name, action="submit_order", result=result)
@@ -63,7 +67,7 @@ class BrokerRouter:
 
     def cancel_order(self, adapter_name: str, order_id: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
-        if not hasattr(adapter, "cancel_order"):
+        if not supports_execution(adapter):
             raise NotImplementedError(f"Adapter '{adapter_name}' does not support cancel_order")
         result = adapter.cancel_order(order_id)
         return RouterResult(adapter=adapter_name, action="cancel_order", result=result)
@@ -71,7 +75,7 @@ class BrokerRouter:
     def get_positions(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
 
-        if hasattr(adapter, "get_positions"):
+        if supports_read(adapter):
             result = adapter.get_positions()
         elif hasattr(adapter, "get_holdings"):
             result = adapter.get_holdings()
@@ -82,7 +86,7 @@ class BrokerRouter:
     def get_balances(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
 
-        if hasattr(adapter, "get_balances"):
+        if supports_read(adapter):
             result = adapter.get_balances()
         elif hasattr(adapter, "get_accounts"):
             result = adapter.get_accounts()
@@ -96,7 +100,7 @@ class BrokerRouter:
     def get_open_orders(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
 
-        if hasattr(adapter, "get_open_orders"):
+        if supports_read(adapter):
             result = adapter.get_open_orders()
         elif hasattr(adapter, "get_orders"):
             result = adapter.get_orders()
@@ -106,21 +110,21 @@ class BrokerRouter:
 
     def get_recent_fills(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
-        if not hasattr(adapter, "get_recent_fills"):
+        if not supports_read(adapter):
             raise NotImplementedError(f"Adapter '{adapter_name}' does not support fills retrieval")
         result = adapter.get_recent_fills()
         return RouterResult(adapter=adapter_name, action="get_recent_fills", result=result)
 
     def close_position(self, adapter_name: str, symbol: str, qty: float | str = "all") -> RouterResult:
         adapter = self._adapters[adapter_name]
-        if not hasattr(adapter, "close_position"):
+        if not supports_execution(adapter):
             raise NotImplementedError(f"Adapter '{adapter_name}' does not support close_position")
         result = adapter.close_position(symbol=symbol, qty=qty)
         return RouterResult(adapter=adapter_name, action="close_position", result=result)
 
     def close_all_positions(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
-        if not hasattr(adapter, "close_all_positions"):
+        if not supports_execution(adapter):
             raise NotImplementedError(f"Adapter '{adapter_name}' does not support close_all_positions")
         result = adapter.close_all_positions()
         return RouterResult(adapter=adapter_name, action="close_all_positions", result=result)
@@ -141,14 +145,15 @@ class BrokerRouter:
     def capabilities(self, adapter_name: str) -> RouterResult:
         adapter = self._adapters[adapter_name]
         capability_map = {
-            "submit_order": any(hasattr(adapter, name) for name in ("place_order", "create_order_ticket", "send_alert")),
-            "cancel_order": hasattr(adapter, "cancel_order"),
-            "get_positions": any(hasattr(adapter, name) for name in ("get_positions", "get_holdings")),
-            "get_account_balances": any(hasattr(adapter, name) for name in ("get_balances", "get_accounts")),
-            "get_open_orders": any(hasattr(adapter, name) for name in ("get_open_orders", "get_orders")),
-            "get_recent_fills": hasattr(adapter, "get_recent_fills"),
-            "close_position": hasattr(adapter, "close_position"),
-            "close_all_positions": hasattr(adapter, "close_all_positions"),
+            "submit_order": supports_execution(adapter)
+            or any(hasattr(adapter, name) for name in ("place_order", "create_order_ticket", "send_alert")),
+            "cancel_order": supports_execution(adapter),
+            "get_positions": supports_read(adapter) or any(hasattr(adapter, name) for name in ("get_positions", "get_holdings")),
+            "get_account_balances": supports_read(adapter) or any(hasattr(adapter, name) for name in ("get_balances", "get_accounts")),
+            "get_open_orders": supports_read(adapter) or any(hasattr(adapter, name) for name in ("get_open_orders", "get_orders")),
+            "get_recent_fills": supports_read(adapter),
+            "close_position": supports_execution(adapter),
+            "close_all_positions": supports_execution(adapter),
         }
         return RouterResult(adapter=adapter_name, action="capabilities", result=capability_map)
 

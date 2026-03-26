@@ -11,9 +11,12 @@ from .backtest import run_pipeline
 from .config import load_config
 from .data_ingestion import read_ohlcv
 from .execution_controls import ExecutionControlService, ExecutionControlsConfig
+from .paths import resolve_paths
 from .pnl import PnLConfig, PnLService
 from .research import ResearchOrchestrator
 from .review import ReviewConfig, ReviewService
+
+_PATHS = resolve_paths()
 
 
 class TradingMCPWorkflow:
@@ -22,25 +25,31 @@ class TradingMCPWorkflow:
     def __init__(
         self,
         *,
-        adapters_dir: str = "config/integrations/adapters",
-        execution_controls_path: str = "config/execution_controls.yaml",
-        risk_controls_path: str = "config/risk_controls.yaml",
-        pnl_config_path: str = "config/pnl.yaml",
+        adapters_dir: str | None = None,
+        execution_controls_path: str | None = None,
+        risk_controls_path: str | None = None,
+        pnl_config_path: str | None = None,
     ) -> None:
-        self.router = build_router_from_config_dir(adapters_dir)
+        paths = resolve_paths()
+        resolved_adapters_dir = adapters_dir or str(paths.adapters)
+        resolved_execution_controls = execution_controls_path or str(paths.config / "execution_controls.yaml")
+        resolved_risk_controls = risk_controls_path or str(paths.config / "risk_controls.yaml")
+        resolved_pnl_config = pnl_config_path or str(paths.config / "pnl.yaml")
+
+        self.router = build_router_from_config_dir(resolved_adapters_dir)
         self.execution_service = ExecutionControlService(
             self.router,
-            ExecutionControlsConfig.from_file(execution_controls_path),
+            ExecutionControlsConfig.from_file(resolved_execution_controls),
         )
-        self.review_service = ReviewService(ReviewConfig.from_file(risk_controls_path))
-        self.pnl_service = PnLService(PnLConfig.from_file(pnl_config_path))
+        self.review_service = ReviewService(ReviewConfig.from_file(resolved_risk_controls))
+        self.pnl_service = PnLService(PnLConfig.from_file(resolved_pnl_config))
         self.research = ResearchOrchestrator()
 
     def research_asset(
         self,
         *,
         market: str,
-        artifacts_dir: str = "artifacts",
+        artifacts_dir: str = str(_PATHS.artifacts),
         max_shortfall_bps: float = 20.0,
     ) -> list[dict[str, Any]]:
         artifacts = Path(artifacts_dir)
@@ -56,10 +65,21 @@ class TradingMCPWorkflow:
         )
         return [item.to_dict() for item in ranked]
 
-    def rank_strategies(self, *, market: str, artifacts_dir: str = "artifacts") -> list[dict[str, Any]]:
+    def rank_strategies(
+        self,
+        *,
+        market: str,
+        artifacts_dir: str = str(_PATHS.artifacts),
+    ) -> list[dict[str, Any]]:
         return self.research_asset(market=market, artifacts_dir=artifacts_dir)
 
-    def run_walkforward(self, *, config: str, input: str, output: str = "artifacts") -> dict[str, Any]:
+    def run_walkforward(
+        self,
+        *,
+        config: str,
+        input: str,
+        output: str = str(_PATHS.artifacts),
+    ) -> dict[str, Any]:
         cfg = load_config(config).raw
         ohlcv = read_ohlcv(input)
         out = Path(output)
@@ -67,7 +87,7 @@ class TradingMCPWorkflow:
         result = run_pipeline(ohlcv, cfg, output_dir=out)
         return result.get("metrics", {})
 
-    def review_trade(self, *, artifacts_dir: str = "artifacts") -> dict[str, Any]:
+    def review_trade(self, *, artifacts_dir: str = str(_PATHS.artifacts)) -> dict[str, Any]:
         artifacts = Path(artifacts_dir)
         orders = pd.read_csv(artifacts / "orders.csv") if (artifacts / "orders.csv").exists() else pd.DataFrame()
         executed = pd.read_csv(artifacts / "executed_orders.csv") if (artifacts / "executed_orders.csv").exists() else pd.DataFrame()
@@ -77,7 +97,12 @@ class TradingMCPWorkflow:
         result = self.router.submit_order(adapter, payload)
         return asdict(result)
 
-    def get_current_pnl(self, *, adapter: str, artifacts_dir: str = "artifacts") -> dict[str, Any]:
+    def get_current_pnl(
+        self,
+        *,
+        adapter: str,
+        artifacts_dir: str = str(_PATHS.artifacts),
+    ) -> dict[str, Any]:
         artifacts = Path(artifacts_dir)
         executed = pd.read_csv(artifacts / "executed_orders.csv") if (artifacts / "executed_orders.csv").exists() else pd.DataFrame()
         positions_payload: Any = {}

@@ -62,3 +62,23 @@ def test_router_capabilities_and_open_orders(monkeypatch) -> None:
 
     open_orders = router.get_open_orders("robinhood_crypto").result
     assert isinstance(open_orders, dict)
+
+
+def test_router_ping_all_handles_adapter_without_read_contract() -> None:
+    router = BrokerRouter()
+
+    class MinimalAdapter:
+        pass
+
+    router.register("minimal", MinimalAdapter())
+    out = router.ping_all()
+    assert out["minimal"]["error"] == "ping_not_supported"
+
+
+def test_router_cancel_all_orders_with_no_open_orders(monkeypatch) -> None:
+    monkeypatch.setenv("TRADINGVIEW_WEBHOOK_URL", "https://example.com/webhook")
+    cfg_dir = Path(__file__).resolve().parents[2] / "config/integrations/adapters"
+    router = build_router_from_config_dir(cfg_dir)
+
+    out = router.cancel_all_orders("tradingview").result
+    assert out["cancelled_count"] == 0

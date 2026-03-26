@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
-import sys
-
 import typer
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+from _bootstrap import ensure_src_path
+
+ROOT = ensure_src_path()
 
 from trading.adapters import build_router_from_config_dir  # noqa: E402
+from trading.paths import resolve_paths  # noqa: E402
+
+PATHS = resolve_paths(ROOT)
 
 app = typer.Typer(add_completion=False)
 
@@ -18,7 +17,7 @@ app = typer.Typer(add_completion=False)
 @app.command()
 def main(
     config_dir: str = typer.Option(
-        "config/integrations/adapters",
+        str(PATHS.adapters),
         help="Adapter config directory",
     ),
 ) -> None:

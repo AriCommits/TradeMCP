@@ -10,13 +10,9 @@ from typing import Any
 import pandas as pd
 import typer
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-MPL_CACHE = ROOT / "downloads_misc" / "mplcache"
-MPL_CACHE.mkdir(parents=True, exist_ok=True)
-os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE))
+from _bootstrap import ensure_src_path
+
+ROOT = ensure_src_path()
 
 from trading.adapters import build_router_from_config_dir  # noqa: E402
 from trading.backtest import run_pipeline  # noqa: E402
@@ -31,9 +27,16 @@ from trading.execution_controls import (  # noqa: E402
     OrderIntent,
     OrderTransactionCoordinator,
 )
+from trading.metadata import build_run_metadata  # noqa: E402
+from trading.paths import resolve_paths  # noqa: E402
 from trading.pnl import PnLConfig, PnLService  # noqa: E402
 from trading.research import ResearchOrchestrator  # noqa: E402
 from trading.review import ReviewConfig, ReviewService  # noqa: E402
+
+PATHS = resolve_paths(ROOT)
+MPL_CACHE = PATHS.downloads_misc / "mplcache"
+MPL_CACHE.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE))
 
 app = typer.Typer(add_completion=False)
 
@@ -54,7 +57,7 @@ def _write_json(path: Path, payload: Any) -> None:
 
 
 def _raise_with_report(exc: Exception, command: str, run_id: str, context: dict[str, Any] | None = None) -> None:
-    policy = load_error_policy(ROOT / "config/error_policy.yaml")
+    policy = load_error_policy(PATHS.config / "error_policy.yaml")
     report = persist_error_report(
         exc,
         command=command,
@@ -66,6 +69,13 @@ def _raise_with_report(exc: Exception, command: str, run_id: str, context: dict[
     typer.echo(f"{type(exc).__name__}: {exc}")
     typer.echo(f"Detailed report: {report}")
     raise typer.Exit(code=1)
+
+
+def _parse_user_meta(user_meta_json: str) -> dict[str, Any]:
+    payload = json.loads(user_meta_json)
+    if not isinstance(payload, dict):
+        raise ValueError("user_meta_json must decode to a JSON object")
+    return payload
 
 
 def _order_payload(adapter: str, symbol: str, side: str, quantity: float, order_type: str, price: float) -> dict[str, Any]:
@@ -84,10 +94,11 @@ def _order_payload(adapter: str, symbol: str, side: str, quantity: float, order_
 
 @app.command()
 def analyze(
-    config: str = typer.Option("config/markets/stocks_base.yaml", help="Path to YAML config"),
-    input: str = typer.Option("data/sample_ohlcv.csv", help="Input OHLCV CSV/Parquet"),
-    output: str = typer.Option("artifacts", help="Output artifact directory"),
+    config: str = typer.Option(str(PATHS.markets / "stocks_base.yaml"), help="Path to YAML config"),
+    input: str = typer.Option(str(PATHS.data / "sample_ohlcv.csv"), help="Input OHLCV CSV/Parquet"),
+    output: str = typer.Option(str(PATHS.artifacts), help="Output artifact directory"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
+    user_meta_json: str = typer.Option("{}", help="JSON object with user-defined metadata fields"),
 ) -> None:
     rid = _run_id(run_id)
     try:
@@ -95,8 +106,18 @@ def analyze(
         ohlcv = read_ohlcv(input)
         out = Path(output)
         out.mkdir(parents=True, exist_ok=True)
+        user_meta = _parse_user_meta(user_meta_json)
+        metadata = build_run_metadata(
+            config=cfg,
+            seed=int(cfg.get("seed", 42)),
+            config_path=config,
+            run_id=rid,
+            command=" ".join(sys.argv),
+            user_meta=user_meta,
+            repo_root=PATHS.repo_root,
+        )
 
-        result = run_pipeline(ohlcv, cfg, output_dir=out)
+        result = run_pipeline(ohlcv, cfg, output_dir=out, run_metadata=metadata)
         typer.echo(f"Analyze complete for {rid}.")
         typer.echo(json.dumps(result["metrics"], indent=2))
     except Exception as exc:
@@ -105,18 +126,19 @@ def analyze(
 
 @app.command()
 def simulate(
-    config: str = typer.Option("config/markets/stocks_base.yaml", help="Path to YAML config"),
-    input: str = typer.Option("data/sample_ohlcv.csv", help="Input OHLCV CSV/Parquet"),
-    output: str = typer.Option("artifacts", help="Output artifact directory"),
+    config: str = typer.Option(str(PATHS.markets / "stocks_base.yaml"), help="Path to YAML config"),
+    input: str = typer.Option(str(PATHS.data / "sample_ohlcv.csv"), help="Input OHLCV CSV/Parquet"),
+    output: str = typer.Option(str(PATHS.artifacts), help="Output artifact directory"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
+    user_meta_json: str = typer.Option("{}", help="JSON object with user-defined metadata fields"),
 ) -> None:
-    analyze(config=config, input=input, output=output, run_id=run_id)
+    analyze(config=config, input=input, output=output, run_id=run_id, user_meta_json=user_meta_json)
 
 
 @app.command()
 def suggest(
     market: str = typer.Option("stocks", help="Market key: stocks|forex|crypto|intl_stocks"),
-    artifacts_dir: str = typer.Option("artifacts", help="Directory with exported pipeline artifacts"),
+    artifacts_dir: str = typer.Option(str(PATHS.artifacts), help="Directory with exported pipeline artifacts"),
     top_n: int = typer.Option(3, min=1, help="Number of strategy suggestions to return"),
     max_shortfall_bps: float = typer.Option(20.0, help="Execution shortfall cap for ranking"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
@@ -144,8 +166,8 @@ def suggest(
 
 @app.command()
 def review(
-    artifacts_dir: str = typer.Option("artifacts", help="Directory with exported pipeline artifacts"),
-    risk_controls: str = typer.Option("config/risk_controls.yaml", help="Review/risk control config"),
+    artifacts_dir: str = typer.Option(str(PATHS.artifacts), help="Directory with exported pipeline artifacts"),
+    risk_controls: str = typer.Option(str(PATHS.config / "risk_controls.yaml"), help="Review/risk control config"),
     output: str = typer.Option("", help="Optional output file path for report JSON"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
 ) -> None:
@@ -183,8 +205,8 @@ def execute(
     confirmed: bool = typer.Option(False, help="Explicit confirmation for live actions"),
     submit: bool = typer.Option(False, help="Actually submit to adapter (false keeps local dry-run)"),
     price: float = typer.Option(1.0, help="Price for adapters that require it"),
-    adapters_dir: str = typer.Option("config/integrations/adapters", help="Adapter config directory"),
-    execution_controls: str = typer.Option("config/execution_controls.yaml", help="Execution control config"),
+    adapters_dir: str = typer.Option(str(PATHS.adapters), help="Adapter config directory"),
+    execution_controls: str = typer.Option(str(PATHS.config / "execution_controls.yaml"), help="Execution control config"),
 ) -> None:
     rid = _run_id(run_id)
     order_id = f"{rid}:{adapter}:{symbol}:{side}:{quantity}"
@@ -252,9 +274,9 @@ def execute(
 @app.command()
 def pnl(
     adapter: str = typer.Option(..., help="Adapter name"),
-    artifacts_dir: str = typer.Option("artifacts", help="Directory with exported pipeline artifacts"),
-    pnl_config: str = typer.Option("config/pnl.yaml", help="PnL config file"),
-    adapters_dir: str = typer.Option("config/integrations/adapters", help="Adapter config directory"),
+    artifacts_dir: str = typer.Option(str(PATHS.artifacts), help="Directory with exported pipeline artifacts"),
+    pnl_config: str = typer.Option(str(PATHS.config / "pnl.yaml"), help="PnL config file"),
+    adapters_dir: str = typer.Option(str(PATHS.adapters), help="Adapter config directory"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
 ) -> None:
     rid = _run_id(run_id)
@@ -285,8 +307,8 @@ def close(
     live: bool = typer.Option(False, help="Set true for live mode"),
     confirmed: bool = typer.Option(False, help="Explicit confirmation for live actions"),
     submit: bool = typer.Option(False, help="Actually mutate adapter state"),
-    adapters_dir: str = typer.Option("config/integrations/adapters", help="Adapter config directory"),
-    execution_controls: str = typer.Option("config/execution_controls.yaml", help="Execution control config"),
+    adapters_dir: str = typer.Option(str(PATHS.adapters), help="Adapter config directory"),
+    execution_controls: str = typer.Option(str(PATHS.config / "execution_controls.yaml"), help="Execution control config"),
     run_id: str | None = typer.Option(None, help="Optional run ID"),
 ) -> None:
     rid = _run_id(run_id)
@@ -320,8 +342,8 @@ def terminate(
     live: bool = typer.Option(False, help="Set true for live mode"),
     confirmed: bool = typer.Option(False, help="Explicit confirmation for live actions"),
     submit: bool = typer.Option(False, help="Actually persist termination"),
-    adapters_dir: str = typer.Option("config/integrations/adapters", help="Adapter config directory"),
-    execution_controls: str = typer.Option("config/execution_controls.yaml", help="Execution control config"),
+    adapters_dir: str = typer.Option(str(PATHS.adapters), help="Adapter config directory"),
+    execution_controls: str = typer.Option(str(PATHS.config / "execution_controls.yaml"), help="Execution control config"),
 ) -> None:
     try:
         router = build_router_from_config_dir(adapters_dir)
@@ -342,7 +364,7 @@ def terminate(
 
 @app.command("compute-info")
 def compute_info(
-    compute_config: str = typer.Option("config/compute.yaml", help="Compute config file"),
+    compute_config: str = typer.Option(str(PATHS.config / "compute.yaml"), help="Compute config file"),
 ) -> None:
     cfg = ComputeConfig.from_file(compute_config)
     backend = ComputeBackend(device=cfg.device)

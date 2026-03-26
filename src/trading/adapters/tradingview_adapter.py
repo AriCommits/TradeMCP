@@ -88,6 +88,9 @@ class TradingViewAdapter:
             "ok": True,
         }
 
+    def submit_order_intent(self, order: dict[str, Any]) -> dict[str, Any]:
+        return self.send_alert(order)
+
     def get_positions(self) -> dict[str, Any]:
         return {"adapter": "tradingview", "positions": [], "note": "not_supported_for_webhook_mode"}
 

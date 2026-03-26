@@ -194,6 +194,16 @@ class ForexComAdapter:
         response.raise_for_status()
         return response.json()
 
+    def submit_order_intent(self, order: dict[str, Any]) -> dict[str, Any]:
+        return self.place_order(
+            symbol=str(order["symbol"]),
+            side=str(order["side"]),
+            quantity=float(order["quantity"]),
+            order_type=str(order.get("order_type", "market")),
+            stop_loss=float(order["stop_loss"]) if "stop_loss" in order else None,
+            take_profit=float(order["take_profit"]) if "take_profit" in order else None,
+        )
+
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         if self.config.dry_run:
             return {"adapter": "forex_com", "dry_run": True, "order_id": order_id}

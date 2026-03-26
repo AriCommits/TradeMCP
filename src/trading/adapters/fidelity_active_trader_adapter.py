@@ -67,6 +67,9 @@ class FidelityActiveTraderAdapter:
             "status": payload["status"],
         }
 
+    def submit_order_intent(self, order: dict[str, Any]) -> dict[str, Any]:
+        return self.create_order_ticket(order)
+
     def list_order_tickets(self) -> list[str]:
         return [str(p) for p in sorted(self._ticket_dir.glob("fidelity_ticket_*.json"))]
 

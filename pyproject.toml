@@ -31,7 +31,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3",
-  "ruff>=0.6"
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pyright>=1.1.380"
 ]
 
 [tool.setuptools]
@@ -43,3 +45,16 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 
+[tool.mypy]
+python_version = "3.10"
+files = ["src", "scripts", "tests"]
+mypy_path = "src"
+warn_return_any = true
+warn_unused_ignores = true
+check_untyped_defs = true
+exclude = ["src/trading_pipeline\\.egg-info/"]
+
+[tool.pyright]
+typeCheckingMode = "basic"
+include = ["src", "scripts", "tests"]
+exclude = ["src/trading_pipeline.egg-info"]

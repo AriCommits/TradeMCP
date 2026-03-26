@@ -83,8 +83,11 @@ class RobinhoodCryptoAdapter:
         response.raise_for_status()
         return response.json()
 
-    def get_account_balances(self) -> dict[str, Any]:
+    def get_balances(self) -> dict[str, Any]:
         return self.get_accounts()
+
+    def get_account_balances(self) -> dict[str, Any]:
+        return self.get_balances()
 
     def get_holdings(self) -> dict[str, Any]:
         response = requests.get(
@@ -165,6 +168,16 @@ class RobinhoodCryptoAdapter:
         )
         response.raise_for_status()
         return response.json()
+
+    def submit_order_intent(self, order: dict[str, Any]) -> dict[str, Any]:
+        return self.place_order(
+            symbol=str(order["symbol"]),
+            side=str(order["side"]),
+            quantity=float(order["quantity"]),
+            order_type=str(order.get("order_type", "market")),
+            limit_price=float(order["limit_price"]) if "limit_price" in order else None,
+            client_order_id=str(order["client_order_id"]) if "client_order_id" in order else None,
+        )
 
     def cancel_order(self, order_id: str) -> dict[str, Any]:
         if self.config.dry_run:

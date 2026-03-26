@@ -19,7 +19,7 @@ Python research + visualization stack with a Rust execution backend.
 ## Quick start
 
 ```bash
-cd /Users/arian/Downloads/TradeMCP
+cd <repo-root>
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .[dev]
@@ -36,7 +36,7 @@ Build Rust execution backend:
 ```bash
 cd backend/rust_exec_engine
 cargo build --release
-cd /Users/arian/Downloads/TradeMCP
+cd <repo-root>
 ```
 
 Run pipeline:
