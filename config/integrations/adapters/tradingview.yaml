@@ -1,0 +1,5 @@
+enabled: false
+webhook_url_env: TRADINGVIEW_WEBHOOK_URL
+webhook_secret_env: TRADINGVIEW_WEBHOOK_SECRET
+timeout_seconds: 15
+dry_run: true

@@ -1,0 +1,11 @@
+enabled: false
+base_url: https://api-demo.forex.com
+auth_endpoint: /session
+positions_endpoint: /positions
+orders_endpoint: /orders
+api_key_env: FOREXCOM_API_KEY
+username_env: FOREXCOM_USERNAME
+password_env: FOREXCOM_PASSWORD
+bearer_token_env: FOREXCOM_BEARER_TOKEN
+timeout_seconds: 20
+dry_run: true

@@ -1,0 +1,11 @@
+enabled: false
+sandbox: true
+base_url: https://api.sandbox.gemini.com
+symbols_endpoint: /v1/symbols
+balances_endpoint: /v1/balances
+order_new_endpoint: /v1/order/new
+order_cancel_endpoint: /v1/order/cancel
+api_key_env: GEMINI_API_KEY
+api_secret_env: GEMINI_API_SECRET
+timeout_seconds: 20
+dry_run: true

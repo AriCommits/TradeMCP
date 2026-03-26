@@ -1,0 +1,46 @@
+experiment_name: swing_pipeline_forex
+mlflow_tracking_uri: ""
+seed: 42
+
+features:
+  return_lags: [1, 2, 3, 5, 8]
+  vol_window: 20
+  robust_scale_cols: [log_return, realized_vol, dollar_volume]
+
+indicators:
+  enabled: true
+  source: native
+  columns: [rsi_14, atr_14, macd_line, macd_signal, macd_hist]
+  scale: true
+
+regime:
+  rebalance_days: 5
+  lookback_days: 90
+  pca_components: 4
+  ica_components: 4
+  umap_components: 2
+  min_cluster_size: 5
+
+volatility:
+  lookback_days: 180
+  forecast_horizon_days: 7
+  model: ewma
+  ewma_lambda: 0.96
+
+forecast:
+  train_min_days: 220
+  test_step_days: 5
+  model: gradient_boosting
+
+risk:
+  signal_z_window: 50
+  vol_gate_quantile: 0.70
+  target_portfolio_risk: 0.45
+  max_position_abs: 0.06
+
+execution:
+  backend_bin: /Users/arian/Downloads/Trading/backend/rust_exec_engine/target/release/rust_exec_engine
+  max_shortfall_bps: 15.0
+
+io:
+  scrape_dir: /Users/arian/Downloads/Trading/downloads_misc

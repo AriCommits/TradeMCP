@@ -1,0 +1,10 @@
+enabled: false
+base_url: https://trading.robinhood.com
+accounts_endpoint: /api/v1/crypto/trading/accounts/
+holdings_endpoint: /api/v1/crypto/trading/holdings/
+orders_endpoint: /api/v1/crypto/trading/orders/
+api_key_env: ROBINHOOD_API_KEY
+api_secret_env: ROBINHOOD_API_SECRET
+bearer_token_env: ROBINHOOD_BEARER_TOKEN
+timeout_seconds: 20
+dry_run: true

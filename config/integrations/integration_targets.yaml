@@ -1,0 +1,15 @@
+# Index of per-adapter integration configs.
+#
+# Each adapter has its own standalone config file under:
+#   config/integrations/adapters/
+#
+# Keep credentials in environment variables referenced by those files.
+
+adapters_dir: /Users/arian/Downloads/Trading/config/integrations/adapters
+
+adapter_files:
+  - tradingview.yaml
+  - fidelity_active_trader.yaml
+  - robinhood_crypto.yaml
+  - gemini.yaml
+  - forex_com.yaml

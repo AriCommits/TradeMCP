@@ -1,0 +1,4 @@
+enabled: false
+account_label: Fidelity
+export_dir: /Users/arian/Downloads/Trading/artifacts/fidelity_tickets
+manual_review_required: true
