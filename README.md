@@ -6,6 +6,11 @@ Python research + visualization stack with a Rust execution backend.
 
 ## Architecture
 
+- `src/trading/models/core.py`: Core trade and execution object model (AssetProfile, ExecutionContext, OrderConfig, OrderState)
+- `src/trading/router.py`: `ModelRouter` for two-tier cloud/local model orchestration
+- `src/trading/db/schema.py`: Database schemas for Research and Execution workflows
+- `src/trading/log_setup.py`: Structured JSON logging framework
+- `src/trading/adapters/base.py`: `BrokerBase` abstract base class for API integration
 - `src/trading/data_ingestion.py` (Module A): interpolation, log returns, robust scaling, parquet I/O
 - `src/trading/regime.py` (Module B): PCA+ICA+UMAP embeddings, HDBSCAN clustering, VI stability
 - `src/trading/volatility.py` (Module C): cluster factor extraction + GARCH/EWMA forward volatility
