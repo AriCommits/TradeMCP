@@ -1,0 +1,12 @@
+{% extends "greeks_viz/base.html" %}
+
+{% block title %}Equity Chart - {{ ticker }}{% endblock %}
+
+{% block content %}
+<div id="equity-chart" style="width:100%; height:80vh;"></div>
+{% endblock %}
+
+{% block scripts %}
+{{ ohlcv|json_script:"ohlcv-data" }}
+<script src="/static/greeks_viz/js/equity_chart.js"></script>
+{% endblock %}

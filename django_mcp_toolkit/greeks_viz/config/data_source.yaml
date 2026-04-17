@@ -1,0 +1,3 @@
+adapter_module: greeks_viz.adapters.csv_adapter
+params:
+  file_path: data/options_chain.csv

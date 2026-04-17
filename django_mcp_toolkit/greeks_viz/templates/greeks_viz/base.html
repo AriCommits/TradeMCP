@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Greeks Viz{% endblock %}</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link rel="stylesheet" href="/static/greeks_viz/css/dashboard.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="navbar">
+        <h1>Greeks Viz Toolkit</h1>
+        <div class="contract-selector">
+            <form method="GET" action="">
+                <input type="text" name="ticker" value="{{ ticker|default:'SPY' }}" placeholder="Ticker">
+                {% block extra_nav %}{% endblock %}
+                <button type="submit">Load</button>
+            </form>
+        </div>
+    </header>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

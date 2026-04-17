@@ -1,0 +1,50 @@
+{% extends "greeks_viz/base.html" %}
+
+{% block title %}Options Greeks 3D - {{ ticker }}{% endblock %}
+
+{% block extra_nav %}
+<input type="date" name="expiry" value="{{ expiry|default:'' }}">
+<select name="type">
+    <option value="call" {% if request.GET.type == 'call' %}selected{% endif %}>Call</option>
+    <option value="put" {% if request.GET.type == 'put' %}selected{% endif %}>Put</option>
+</select>
+{% endblock %}
+
+{% block content %}
+<div class="panel-toggles">
+    <!-- Buttons to toggle 10 panels -->
+    <button onclick="togglePanel('panel-0')">Δ·Γ·Θ</button>
+    <button onclick="togglePanel('panel-1')">Δ·Γ·V</button>
+    <button onclick="togglePanel('panel-2')">Δ·Γ·ρ</button>
+    <button onclick="togglePanel('panel-3')">Δ·Θ·V</button>
+    <button onclick="togglePanel('panel-4')">Δ·Θ·ρ</button>
+    <button onclick="togglePanel('panel-5')">Δ·V·ρ</button>
+    <button onclick="togglePanel('panel-6')">Γ·Θ·V</button>
+    <button onclick="togglePanel('panel-7')">Γ·Θ·ρ</button>
+    <button onclick="togglePanel('panel-8')">Γ·V·ρ</button>
+    <button onclick="togglePanel('panel-9')">Θ·V·ρ</button>
+</div>
+
+<div class="grid-container">
+    {% for item in greeks_data %}
+        <div class="grid-item" id="panel-{{ forloop.counter0 }}">
+            <div id="surface-{{ forloop.counter0 }}" style="width:100%; height:400px;"></div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ greeks_data|json_script:"greeks-data" }}
+<script src="/static/greeks_viz/js/greeks_grid.js"></script>
+<script>
+    function togglePanel(panelId) {
+        var el = document.getElementById(panelId);
+        if (el.style.display === "none") {
+            el.style.display = "block";
+        } else {
+            el.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}
