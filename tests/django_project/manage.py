@@ -1,8 +1,13 @@
 import os
 import sys
+from pathlib import Path
 
 def main():
     """Run administrative tasks."""
+    src_path = str(Path(__file__).resolve().parent.parent.parent / "src")
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_mcp_toolkit.settings')
     try:
         from django.core.management import execute_from_command_line

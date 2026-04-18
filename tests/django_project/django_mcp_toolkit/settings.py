@@ -1,11 +1,16 @@
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-test-key-for-mcp-toolkit'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured("The DJANGO_SECRET_KEY environment variable must be set.")
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 't')
+
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,7 +65,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GREEKS_VIZ_CONFIG = {
-    'DATA_SOURCE_CONFIG': BASE_DIR / 'greeks_viz/config/data_source.yaml',
+    'DATA_SOURCE_CONFIG': BASE_DIR.parent.parent / 'src/greeks_viz/config/data_source.yaml',
     'DEFAULT_TICKER': 'SPY',
     'CHART_LIBRARY': 'plotly',
 }

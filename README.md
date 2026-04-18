@@ -11,7 +11,8 @@ Python research + visualization stack with a Rust execution backend.
 - `src/trading/db/schema.py`: Database schemas for Research and Execution workflows
 - `src/trading/log_setup.py`: Structured JSON logging framework
 - `src/trading/adapters/base.py`: `BrokerBase` abstract base class for API integration
-- `django_mcp_toolkit/`: Django-based Options Greeks + Equity Visualization Toolkit (MCP Plugin)
+- `src/greeks_viz/`: Django-based Options Greeks + Equity Visualization Toolkit (MCP Plugin)
+- `tests/django_project/`: Host Django project for testing `greeks_viz`
 - `src/trading/data_ingestion.py` (Module A): interpolation, log returns, robust scaling, parquet I/O
 - `src/trading/regime.py` (Module B): PCA+ICA+UMAP embeddings, HDBSCAN clustering, VI stability
 - `src/trading/volatility.py` (Module C): cluster factor extraction + GARCH/EWMA forward volatility
@@ -62,6 +63,14 @@ Run frontend:
 
 ```bash
 streamlit run src/trading/app.py
+```
+
+Run Greeks visualization test server:
+
+```bash
+export DJANGO_SECRET_KEY="your-secret-key-here"
+cd tests/django_project
+python manage.py runserver
 ```
 
 ## Webscraping outputs

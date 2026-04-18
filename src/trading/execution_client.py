@@ -51,8 +51,13 @@ def apply_execution_filter(orders: pd.DataFrame, backend_bin: str, max_shortfall
     ]
 
     decisions = None
-    bin_path = Path(backend_bin)
-    if bin_path.exists() and bin_path.is_file():
+    bin_path = Path(backend_bin).resolve()
+    
+    # Security check: Ensure the bin_path is within the repository or is a known safe executable name
+    repo_root = Path(__file__).resolve().parents[2]
+    is_safe_path = str(bin_path).startswith(str(repo_root)) or bin_path.name in ("rust_exec_engine", "rust_exec_engine.exe")
+    
+    if is_safe_path and bin_path.exists() and bin_path.is_file():
         payload = {"orders": request_rows, "max_shortfall_bps": max_shortfall_bps}
         proc = subprocess.run(
             [str(bin_path)],
