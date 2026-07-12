@@ -1,0 +1,19 @@
+schema_version: options-data-sources.v1alpha1
+
+default_provider: saved_parquet
+
+providers:
+  saved_parquet:
+    enabled: true
+    root: data/options
+    compression: zstd
+    partition_columns: [underlying, session_date]
+    query_engine: duckdb
+
+quality:
+  max_quote_age_seconds: 300
+  reject_crossed_quotes: true
+  allow_locked_quotes: true
+  reject_missing_bid_or_ask: true
+  allow_synthetic_executable_quotes: false
+  preserve_provider_derived_fields: true

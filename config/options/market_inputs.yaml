@@ -1,0 +1,21 @@
+schema_version: options-market-inputs.v1alpha1
+
+rates:
+  maximum_age_seconds: 86400
+  interpolation: none
+  require_currency_match: true
+
+dividends:
+  require_announced_at: true
+  require_ex_date: true
+  allow_continuous_yield_fallback: false
+
+events:
+  require_announced_at: true
+  require_effective_at: true
+  exclude_revisions_announced_after_decision: true
+
+accounts:
+  maximum_age_seconds: 60
+  saved_fixture_only: true
+  require_option_level: true

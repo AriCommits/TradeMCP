@@ -1,5 +1,7 @@
 # Sprint 2 — Options Data and Pricing Foundation
 
+**Status:** Complete — 2026-07-12
+
 ## Goal
 
 Load a historical option chain at a known timestamp and compute trustworthy baseline theoretical values and Greeks without treating theory as an executable quote.
@@ -56,3 +58,27 @@ Load a historical option chain at a known timestamp and compute trustworthy base
 - Chain snapshots and pricing unblock lifecycle simulation.
 - Historical normalized data unblock forecast dataset construction.
 - Account/carry interfaces unblock capital modeling.
+## Completion Record
+
+Implemented:
+
+- Typed saved CSV/Parquet provider contracts with point-in-time chain reconstruction.
+- Lossless raw quote records, deterministic quality assessments, partitioned Parquet storage, and DuckDB queries.
+- Validated Black-Scholes-Merton pricing, daily/percentage-point Greeks, bounded IV inversion, and a validated CRR American/European tree.
+- Point-in-time rates, borrow/carry, dividends, corporate actions, exchange expiration timestamps, events, broker capabilities, and credential-free account fixtures.
+- Cross-lane integration from a canonical chain and saved rate/calendar inputs through IV and Greeks.
+
+Integration decisions:
+
+- Missing-sided quotes are retained for audit but cannot become canonical executable quotes.
+- Stale and crossed quotes are rejected by default; locked and zero-bid quotes remain explicitly flagged for downstream policy.
+- Canonical Greeks use currency per calendar day for theta and currency per one percentage point for vega/rho.
+- Market-input snapshots reject records announced or ingested after the decision timestamp and fail closed outside declared coverage windows.
+
+Verified:
+
+- Python, Django, Parquet, and DuckDB: 69 tests passed.
+- Ruff: all Sprint 2 files passed.
+- Scoped mypy: 22 data/account/options modules passed.
+- Base Rust engine: 2 tests passed.
+- Subtree Rust prototype: 31 tests passed; 8 existing compiler warnings remain.

@@ -1,0 +1,30 @@
+schema_version: options-pricing.v1alpha1
+
+units:
+  price: currency_per_share
+  volatility: annualized_decimal
+  interest_rate: annualized_decimal
+  time_to_expiry: actual_365_years_from_utc_timestamps
+  theta: currency_per_calendar_day
+  vega: currency_per_one_volatility_point
+  rho: currency_per_one_rate_point
+
+models:
+  european: black_scholes_merton
+  american: binomial_tree
+
+implied_volatility:
+  lower_bound: 0.000001
+  upper_bound: 8.0
+  price_tolerance: 0.00000001
+  volatility_tolerance: 0.00000001
+  max_iterations: 200
+
+binomial:
+  default_steps: 500
+  minimum_steps: 1
+
+safety:
+  allow_silent_input_clamping: false
+  require_finite_inputs: true
+  reject_negative_time_to_expiry: true

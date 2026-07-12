@@ -25,7 +25,8 @@ dependencies = [
   "mlflow>=2.16",
   "requests>=2.32",
   "beautifulsoup4>=4.12",
-  "pyarrow>=17.0"
+  "pyarrow>=17.0",
+  "duckdb>=1.1"
 ]
 
 [project.optional-dependencies]

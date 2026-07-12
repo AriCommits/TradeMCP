@@ -6,6 +6,9 @@ __pycache__/
 
 artifacts/
 data/
+!src/trading/data/
+!src/trading/data/**
+src/trading/data/__pycache__/
 downloads_misc/
 backend/rust_exec_engine/target/
 
