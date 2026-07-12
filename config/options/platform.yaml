@@ -1,0 +1,39 @@
+schema_version: options-platform.v1alpha1
+
+time:
+  storage_timezone: UTC
+  expiration_timestamp_source: exchange_calendar
+  day_count_basis: actual_365
+  distinguish_calendar_and_trading_days: true
+
+units:
+  option_price: currency_per_share
+  volatility: annualized_decimal
+  interest_rate: annualized_decimal
+  theta: currency_per_calendar_day
+  greeks_multiplier_basis: per_share
+
+data_quality:
+  reject_crossed_quotes: true
+  reject_missing_bid_or_ask: true
+  allow_synthetic_executable_quotes: false
+  max_quote_age_seconds: 300
+
+pricing:
+  canonical_engine: python
+  rust_engine_enabled: false
+  european_model: black_scholes_merton
+  american_model: binomial_tree
+  allow_silent_input_clamping: false
+
+research:
+  primary_fill_policy: executable_side
+  sensitivity_fill_policies: [midpoint]
+  point_in_time_required: true
+  default_dry_run: true
+
+artifacts:
+  root: artifacts/options
+  persist_data_quality_report: true
+  persist_feature_manifest: true
+  persist_run_metadata: true

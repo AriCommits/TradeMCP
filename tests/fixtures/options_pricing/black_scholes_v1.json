@@ -1,0 +1,47 @@
+{
+  "schema_version": "options-pricing-fixture/v1",
+  "model": "black_scholes_merton_continuous_yield",
+  "source": "Independent implementation of the equations audited in Agent_00Quant/TradeMCP/backend/rust_exec_engine/src/options.rs",
+  "conventions": {
+    "money": "currency units per underlying share",
+    "time_to_expiry": "calendar years",
+    "rate": "continuously compounded annual decimal",
+    "dividend_yield": "continuous annual decimal",
+    "volatility": "annualized decimal",
+    "theta": "price change per one calendar year, not per day",
+    "vega": "price change per 1.0 absolute volatility, not per volatility point",
+    "rho": "price change per 1.0 absolute rate, not per rate point"
+  },
+  "implementation_compatibility": {
+    "minimum_time_to_expiry_years": 0.0027397260273972603,
+    "minimum_volatility": 1e-10
+  },
+  "absolute_tolerance": 1e-10,
+  "cases": [
+    {
+      "id": "atm_call_no_dividend",
+      "input": {"spot": 100.0, "strike": 100.0, "time_to_expiry_years": 1.0, "rate": 0.05, "volatility": 0.2, "dividend_yield": 0.0, "option_type": "call"},
+      "expected": {"price": 10.450583572185565, "delta": 0.6368306511756191, "gamma": 0.018762017345846895, "theta": -6.414027546438196, "vega": 37.52403469169379, "rho": 53.232481545376345, "effective_time_to_expiry_years": 1.0, "effective_volatility": 0.2}
+    },
+    {
+      "id": "atm_put_no_dividend",
+      "input": {"spot": 100.0, "strike": 100.0, "time_to_expiry_years": 1.0, "rate": 0.05, "volatility": 0.2, "dividend_yield": 0.0, "option_type": "put"},
+      "expected": {"price": 5.573526022256971, "delta": -0.3631693488243809, "gamma": 0.018762017345846895, "theta": -1.657880423934626, "vega": 37.52403469169379, "rho": -41.89046090469506, "effective_time_to_expiry_years": 1.0, "effective_volatility": 0.2}
+    },
+    {
+      "id": "itm_call_with_continuous_dividend",
+      "input": {"spot": 100.0, "strike": 95.0, "time_to_expiry_years": 0.5, "rate": 0.03, "volatility": 0.25, "dividend_yield": 0.02, "option_type": "call"},
+      "expected": {"price": 9.831948725700414, "delta": 0.6513875019895264, "gamma": 0.02056845628853121, "theta": -6.784071630384516, "vega": 25.71057036066402, "rho": 27.65340073662611, "effective_time_to_expiry_years": 0.5, "effective_volatility": 0.25}
+    },
+    {
+      "id": "subday_call_exposes_legacy_one_day_clamp",
+      "input": {"spot": 100.0, "strike": 100.0, "time_to_expiry_years": 0.00011415525114155251, "rate": 0.01, "volatility": 0.3, "dividend_yield": 0.0, "option_type": "call"},
+      "expected": {"price": 0.6278035802687469, "delta": 0.5038282333563526, "gamma": 0.2540476882187396, "theta": -114.81900989598647, "vega": 2.088063190838955, "rho": 0.13631512261744252, "effective_time_to_expiry_years": 0.0027397260273972603, "effective_volatility": 0.3}
+    },
+    {
+      "id": "zero_vol_call_exposes_legacy_volatility_clamp",
+      "input": {"spot": 110.0, "strike": 100.0, "time_to_expiry_years": 1.0, "rate": 0.05, "volatility": 0.0, "dividend_yield": 0.0, "option_type": "call"},
+      "expected": {"price": 14.877057549928594, "delta": 1.0, "gamma": 0.0, "theta": -4.75614712250357, "vega": 0.0, "rho": 95.1229424500714, "effective_time_to_expiry_years": 1.0, "effective_volatility": 1e-10}
+    }
+  ]
+}

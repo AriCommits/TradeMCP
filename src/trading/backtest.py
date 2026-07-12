@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .data_ingestion import build_model_table, preprocess_ohlcv, robust_scale
+from .data_ingestion import build_model_table, causal_robust_scale, preprocess_ohlcv
 from .execution_client import apply_execution_filter
 from .forecasting import walk_forward_forecast
 from .indicators import add_indicators, select_model_indicator_features
@@ -58,7 +58,9 @@ def _align_vol_to_predictions(predictions: pd.DataFrame, vol: pd.DataFrame) -> p
         return pd.DataFrame(columns=["date", "symbol", "vol_forecast", "regime"])
     if vol.empty:
         out = predictions[["date", "symbol"]].copy()
-        out["vol_forecast"] = predictions["target"].rolling(20, min_periods=5).std().fillna(0.01).values
+        out["vol_forecast"] = (
+            predictions["target"].rolling(20, min_periods=5).std().fillna(0.01).values
+        )
         out["regime"] = -1
         return out
 
@@ -72,7 +74,12 @@ def _align_vol_to_predictions(predictions: pd.DataFrame, vol: pd.DataFrame) -> p
             tmp["regime"] = -1
             out_parts.append(tmp)
             continue
-        merged = pd.merge_asof(p[["date", "symbol"]], v[["date", "vol_forecast", "regime"]], on="date", direction="backward")
+        merged = pd.merge_asof(
+            p[["date", "symbol"]],
+            v[["date", "vol_forecast", "regime"]],
+            on="date",
+            direction="backward",
+        )
         merged["symbol"] = symbol
         merged["vol_forecast"] = merged["vol_forecast"].fillna(0.01)
         merged["regime"] = merged["regime"].fillna(-1).astype(int)
@@ -109,10 +116,15 @@ def run_pipeline(
     if indicator_cols and bool(ind_cfg.get("scale", True)):
         scale_cols.extend(indicator_cols)
     scale_cols = sorted(set(scale_cols))
-    processed = robust_scale(processed, columns=scale_cols)
+    # Regime discovery consumes scaled columns before forecast folds exist, so
+    # give it an expanding point-in-time transform. Forecasting independently
+    # fits imputation/scaling inside every training fold.
+    processed = causal_robust_scale(processed, columns=scale_cols)
 
     regime_result = discover_regimes(
-        processed.dropna(subset=["log_return_scaled", "realized_vol_scaled", "dollar_volume_scaled"]),
+        processed.dropna(
+            subset=["log_return_scaled", "realized_vol_scaled", "dollar_volume_scaled"]
+        ),
         rebalance_days=config["regime"]["rebalance_days"],
         lookback_days=config["regime"]["lookback_days"],
         pca_components=config["regime"]["pca_components"],
@@ -125,7 +137,7 @@ def run_pipeline(
     indicator_features = select_model_indicator_features(
         with_regime,
         indicator_cols=indicator_cols,
-        use_scaled=bool(ind_cfg.get("scale", True)),
+        use_scaled=False,
     )
     model_df, feature_cols = build_model_table(
         with_regime,
@@ -133,7 +145,9 @@ def run_pipeline(
         extra_feature_cols=indicator_features,
     )
     if "regime" in with_regime.columns:
-        model_df = model_df.merge(with_regime[["date", "symbol", "regime"]], on=["date", "symbol"], how="left")
+        model_df = model_df.merge(
+            with_regime[["date", "symbol", "regime"]], on=["date", "symbol"], how="left"
+        )
         model_df["regime"] = model_df["regime"].fillna(-1)
         feature_cols = [*feature_cols, "regime"]
 
@@ -175,12 +189,16 @@ def run_pipeline(
         post_exec_metrics = pre_exec_metrics
         approval_rate = 0.0
     else:
-        exec_perf_df = executed[["date", "executed_pnl"]].rename(columns={"executed_pnl": "realized_pnl"})
+        exec_perf_df = executed[["date", "executed_pnl"]].rename(
+            columns={"executed_pnl": "realized_pnl"}
+        )
         post_exec_metrics = summarize_performance(exec_perf_df)
         approval_rate = float(executed["approve"].mean())
 
     metrics = {
-        "avg_vi": float(regime_result.vi_scores["vi"].mean()) if not regime_result.vi_scores.empty else np.nan,
+        "avg_vi": float(regime_result.vi_scores["vi"].mean())
+        if not regime_result.vi_scores.empty
+        else np.nan,
         "approval_rate": approval_rate,
         "pre_exec": pre_exec_metrics,
         "post_exec": post_exec_metrics,
@@ -246,7 +264,9 @@ def export_artifacts(
     with open(out / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(result["metrics"], f, indent=2)
 
-    metadata_payload = run_metadata.to_dict() if run_metadata is not None else result.get("run_metadata", {})
+    metadata_payload = (
+        run_metadata.to_dict() if run_metadata is not None else result.get("run_metadata", {})
+    )
     with open(out / "run_metadata.json", "w", encoding="utf-8") as f:
         json.dump(metadata_payload, f, indent=2)
 
