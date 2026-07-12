@@ -1,0 +1,19 @@
+schema_version: options-simulation.v1alpha1
+
+fills:
+  primary_policy: executable_side
+  sensitivity_policies: [midpoint]
+  allow_theoretical_fill_for_missing_quote: false
+  require_non_stale_quote: true
+
+costs:
+  commission_per_contract: 0.65
+  exchange_fee_per_contract: 0.00
+  assignment_fee: 0.00
+
+lifecycle:
+  physical_assignment_enabled: true
+  early_assignment_model: explicit_event_only
+  unsupported_event_policy: fail_closed
+  require_known_multiplier: true
+  require_known_settlement_type: true

@@ -1,0 +1,21 @@
+schema_version: options-forecasts.v1alpha1
+
+horizons:
+  realized_volatility_trading_days: [1, 3, 5, 20, 45]
+  gap_overnight_intervals: [1]
+  excursion_trading_days: [1, 3, 5, 20]
+
+baselines:
+  historical: true
+  ewma: true
+  garch: optional
+
+calibration:
+  quantiles: [0.05, 0.25, 0.50, 0.75, 0.95]
+  probability_metrics: [brier_score]
+  quantile_metrics: [pinball_loss, empirical_coverage]
+  require_naive_comparison: true
+
+point_in_time:
+  require_strict_training_cutoff: true
+  fold_local_transforms: true

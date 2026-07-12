@@ -1,0 +1,25 @@
+schema_version: options-portfolio-limits.v1alpha1
+
+capital:
+  cash_secured_puts_require_full_strike_notional: true
+  covered_calls_require_shares: true
+  buying_power_source_preference: broker_then_estimate
+  estimate_label_required: true
+  opportunity_cost_day_count: actual_365
+
+concentration:
+  maximum_symbol_fraction: 0.20
+  maximum_sector_fraction: 0.35
+  maximum_strategy_fraction: 0.40
+  maximum_expiration_fraction: 0.30
+
+exposure:
+  require_delta: true
+  require_gamma: true
+  require_vega: true
+  require_theta: true
+
+safety:
+  require_account_snapshot: true
+  require_broker_capabilities: true
+  fail_closed_on_missing_inputs: true

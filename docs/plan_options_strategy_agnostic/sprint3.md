@@ -1,5 +1,7 @@
 # Sprint 3 — Lifecycle Simulation, Forecasts, and Capital
 
+**Status:** Complete — 2026-07-12
+
 ## Goal
 
 Produce realistic single-leg option cashflows, reusable horizon forecasts, and explicit capital requirements as independent services.
@@ -51,3 +53,28 @@ Produce realistic single-leg option cashflows, reusable horizon forecasts, and e
 ## Handoff
 
 - `SimulationContext`, `ForecastBundle`, and `CapitalRequirement` unblock the strategy framework.
+## Completion Record
+
+Implemented:
+
+- Executable-side, midpoint, and marketable-limit fill policies with immutable cashflow and lifecycle records.
+- Short-put close, worthless expiration, physical assignment, early-assignment hook, and covered-call expiration flows.
+- Strategy-neutral historical, EWMA, optional-GARCH, gap, excursion, touch, and finish-probability forecasts with expanding calibration.
+- Conservative cash-secured, covered-share, debit, and defined-risk capital requirements; opportunity cost; concentration gates; and signed Greek aggregation.
+- Cross-lane decision context proving forecast, capital, and lifecycle services agree on timestamps and canonical units.
+
+Integration decisions:
+
+- Daily-bar models accept trading-day horizons only; calendar/expiration horizons require an explicit exchange-calendar conversion.
+- Gap forecasts require one explicit overnight interval in Version 1.
+- Locked quotes remain executable when other safety checks pass; stale, crossed, indicative, and unsafe zero-bid entries fail closed.
+- Account and broker-capability inputs have explicit freshness limits.
+- Covered-call maximum loss uses the marked value of committed shares less premium instead of reporting zero risk.
+
+Verified:
+
+- Python and Django: 108 tests passed.
+- Ruff: all Sprint 3 files passed.
+- Scoped mypy: 19 forecast/simulation/portfolio modules passed.
+- Base Rust engine: 2 tests passed.
+- Subtree Rust prototype: 31 tests passed; 8 existing compiler warnings remain.
