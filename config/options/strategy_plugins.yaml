@@ -1,0 +1,21 @@
+schema_version: options-strategy-plugins.v1alpha1
+
+discovery:
+  mode: explicit_registry
+  deterministic_order: strategy_id_then_semantic_version
+  allow_duplicate_identity: false
+
+validation:
+  require_semantic_version: true
+  require_versioned_parameter_schema: true
+  require_declared_data_inputs: true
+  require_declared_forecasts: true
+  require_entry_policy: true
+  require_exit_policy: true
+  require_roll_policy: true
+  require_sizing_policy: true
+  require_capital_policy: true
+
+safety:
+  allow_dynamic_filesystem_discovery: false
+  fail_closed_on_contract_drift: true

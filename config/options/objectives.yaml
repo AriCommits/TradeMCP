@@ -1,0 +1,20 @@
+schema_version: options-objectives.v1alpha1
+
+scoring:
+  require_explicit_weights: true
+  require_component_decomposition: true
+  components: [return, tail, capital, liquidity, concentration]
+  keep_estimated_and_realized_scores_distinct: true
+
+reference_weights:
+  return: 1.0
+  tail: 1.0
+  capital: 1.0
+  liquidity: 1.0
+  concentration: 1.0
+
+stress:
+  axes: [spot, implied_volatility, time, liquidity]
+  require_evaluator_id: true
+  require_evaluator_version: true
+  require_reproducible_input_identity: true

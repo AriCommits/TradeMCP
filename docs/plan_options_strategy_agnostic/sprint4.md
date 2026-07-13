@@ -48,3 +48,14 @@ Make strategy behavior configurable and versioned so new options strategies can 
 ## Handoff
 
 - The generic framework unblocks reference strategies without adding strategy-specific branches to the pipeline.
+
+## Completion Record
+
+**Status:** Complete
+
+- Added strict, versioned strategy plug-in and policy contracts with deterministic explicit registration.
+- Added deterministic option-chain candidate screening with point-in-time quality, event, account, broker, liquidity, and capital gates.
+- Added separate estimated and realized objective scoring with explicit decomposed weights and reproducible stress grids.
+- Added versioned configuration for plug-ins, candidate quality, objectives, and stress behavior.
+- Verified the synthetic path from registered strategy through screening, lifecycle simulation, and objective scoring.
+- Validation: 129 Python tests, scoped Ruff and mypy, and 2 Rust tests passed.

@@ -1,0 +1,20 @@
+schema_version: options-candidates.v1alpha1
+
+selection:
+  deterministic_order: expiration_strike_type_contract
+  retain_rejected_candidates: true
+
+quality:
+  max_snapshot_age_seconds: 300
+  max_quote_age_seconds: 300
+  reject_crossed_quotes: true
+  reject_zero_bid: true
+  require_quote_sizes: true
+  minimum_volume: 0
+  minimum_open_interest: 0
+
+safety:
+  require_event_calendar: true
+  require_account_snapshot: true
+  require_broker_capabilities: true
+  fail_closed_on_missing_inputs: true
