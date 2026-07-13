@@ -1,0 +1,52 @@
+schema_version: options-strategy.v1alpha1
+strategy_id: cash_secured_put_30_45_dte
+strategy_version: 1.0.0
+
+contract_selection:
+  option_type: put
+  side: short
+  min_calendar_dte: 30
+  max_calendar_dte: 45
+  min_absolute_delta: 0.15
+  max_absolute_delta: 0.30
+
+entry:
+  exclude_earnings_and_material_events_through_expiration: true
+  min_volatility_risk_premium: 0.0
+  max_forecast_drawdown: 1.0
+  max_touch_probability: 1.0
+  max_finish_itm_probability: 1.0
+  max_assignment_probability: 1.0
+
+exit:
+  profit_target_fraction: 0.50
+  timed_close_dte: 21
+  rolling_enabled: false
+
+capital:
+  treatment: cash_secured
+  reserve_full_strike_collateral: true
+  broker_margin_relief: false
+  max_contracts: 1
+
+required_point_in_time_data:
+  - option_chain
+  - underlying_mark
+  - account_snapshot
+  - corporate_events
+  - dividends
+  - rates
+  - exchange_calendar
+  - option_delta
+  - entry_implied_volatility
+  - entry_put_skew
+
+required_expiration_matched_forecasts:
+  - realized_volatility
+  - skew_change
+  - max_down_move
+  - touch_probability
+  - expiration_itm_probability
+
+assignment_probability_source: expiration_itm_probability
+missing_input_policy: reject

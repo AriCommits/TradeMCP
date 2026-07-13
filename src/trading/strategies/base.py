@@ -122,13 +122,28 @@ class CapitalPolicy(Protocol):
 
 @runtime_checkable
 class OptionStrategy(Protocol):
-    """Complete strategy plug-in contract consumed by the registry and pipeline."""
+    """Complete read-only strategy plug-in contract consumed by the registry."""
 
-    specification: StrategySpecification
-    parameter_schema: ParameterSchema
-    requirements: StrategyRequirements
-    entry_policy: EntryPolicy
-    exit_policy: ExitPolicy
-    roll_policy: RollPolicy
-    sizing_policy: SizingPolicy
-    capital_policy: CapitalPolicy
+    @property
+    def specification(self) -> StrategySpecification: ...
+
+    @property
+    def parameter_schema(self) -> ParameterSchema: ...
+
+    @property
+    def requirements(self) -> StrategyRequirements: ...
+
+    @property
+    def entry_policy(self) -> EntryPolicy: ...
+
+    @property
+    def exit_policy(self) -> ExitPolicy: ...
+
+    @property
+    def roll_policy(self) -> RollPolicy: ...
+
+    @property
+    def sizing_policy(self) -> SizingPolicy: ...
+
+    @property
+    def capital_policy(self) -> CapitalPolicy: ...

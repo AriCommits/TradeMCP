@@ -1,0 +1,37 @@
+schema_version: options-strategy.v1alpha1
+strategy_id: weekend_short_put
+strategy_version: "1.0.0"
+timezone: America/New_York
+entry:
+  weekday: friday
+  start_local: "15:30"
+  end_local: "15:55"
+  expiration_selection: next_listed_after_entry
+filters:
+  minimum_absolute_delta: 0.15
+  maximum_absolute_delta: 0.30
+  maximum_relative_spread: 0.20
+  minimum_open_interest: 100
+  blocked_events: [earnings, economic_release, central_bank, regulatory]
+exit:
+  policy: hold_to_expiration
+  rolling_supported: false
+capital:
+  treatment: cash_secured
+  maximum_account_fraction: 0.05
+  max_contracts: 1
+required_inputs:
+  forecasts:
+    - weekend_gap_return
+    - touch_probability_to_expiration
+    - finish_itm_probability_to_expiration
+    - realized_volatility_to_expiration
+    - implied_volatility_change_to_expiration
+    - liquidity_spread_to_expiration
+  lifecycle:
+    - expiration_assignment_rules
+    - dividends
+    - exchange_calendar
+accounting:
+  weekend_theta: embedded_in_friday_market_premium
+  synthetic_weekend_theta_pnl: false

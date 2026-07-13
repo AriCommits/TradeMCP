@@ -49,3 +49,14 @@ Answer the first real research question: under the same account and objective as
 ## Handoff
 
 - Validated comparison outputs unblock MCP planning and human-readable trade plans.
+
+## Completion Record
+
+**Status:** Complete
+
+- Added versioned weekend and 30-45 DTE cash-secured short-put reference plug-ins.
+- Added DST-safe Friday entry rules, nearest-listed-expiration selection, delta/liquidity/event gates, and explicit no-synthetic-weekend-theta accounting.
+- Added configurable 30-45 DTE entry, 50% profit-target, 21-DTE close, event exclusion, forecast, sizing, and full-collateral rules.
+- Added leakage-safe expanding/rolling options evaluation with pessimistic and midpoint fills, naive baselines, confidence intervals, effective sample size, regime concentration, attribution, and reproducible identities.
+- Added a shared comparison report for return, fill sensitivity, tail loss, assignment rate, capital use, and explicit insufficient-evidence results.
+- Validation: 159 Python tests, scoped Ruff and mypy, and 2 Rust tests passed.

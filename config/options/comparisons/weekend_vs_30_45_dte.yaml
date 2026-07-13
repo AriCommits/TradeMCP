@@ -1,0 +1,28 @@
+schema_version: options-strategy-comparison.v1alpha1
+
+strategies:
+  - strategy_id: weekend_short_put
+    strategy_version: 1.0.0
+  - strategy_id: cash_secured_put_30_45_dte
+    strategy_version: 1.0.0
+
+shared_assumptions:
+  account_snapshot_required: true
+  objective_id: tail_adjusted_return_on_collateral
+  primary_fill: pessimistic_executable_side
+  sensitivity_fill: midpoint
+  point_in_time_folds: true
+  same_data_model_objective_config_and_code_versions: true
+
+reported_metrics:
+  - pessimistic_return
+  - midpoint_fill_sensitivity
+  - tail_loss
+  - assignment_rate
+  - capital_required
+  - effective_sample_size
+  - regime_concentration
+
+evidence:
+  allow_insufficient_evidence: true
+  winner_rule: non_overlapping_pessimistic_return_confidence_intervals
