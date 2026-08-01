@@ -1,0 +1,21 @@
+schema_version: 1
+snapshot_name: fixture_pilot_catalog_2026_08_01
+captured_at: '2026-08-01T00:00:00Z'
+venue: fixture_venue
+instrument_type: spot
+quote_asset: USDT
+membership_basis: synthetic_fixture_catalog_not_point_in_time_market_membership
+minimum_history_days: 1095
+minimum_average_daily_quote_volume: 10000000
+candidates:
+  - {canonical_asset: BTC, venue_symbol: BTCUSDT, category: standard, active: true, history_days: 5000, average_daily_quote_volume: 1000000000}
+  - {canonical_asset: ETH, venue_symbol: ETHUSDT, category: standard, active: true, history_days: 4000, average_daily_quote_volume: 700000000}
+  - {canonical_asset: ETC, venue_symbol: ETCUSDT, category: standard, active: true, history_days: 3000, average_daily_quote_volume: 50000000}
+  - {canonical_asset: AVAX, venue_symbol: AVAXUSDT, category: standard, active: true, history_days: 1800, average_daily_quote_volume: 80000000}
+  - {canonical_asset: SOL, venue_symbol: SOLUSDT, category: standard, active: true, history_days: 2200, average_daily_quote_volume: 300000000}
+  - {canonical_asset: USDC, venue_symbol: USDCUSDT, category: stablecoin, active: true, history_days: 2000, average_daily_quote_volume: 200000000}
+  - {canonical_asset: WBTC, venue_symbol: WBTCUSDT, category: redundant_wrapper, active: true, history_days: 1800, average_daily_quote_volume: 30000000}
+  - {canonical_asset: PAXG, venue_symbol: PAXGUSDT, category: tokenized_asset, active: true, history_days: 1800, average_daily_quote_volume: 15000000}
+  - {canonical_asset: LUNA, venue_symbol: LUNAUSDT, category: standard, active: false, history_days: 2000, average_daily_quote_volume: 20000000}
+  - {canonical_asset: NEW, venue_symbol: NEWUSDT, category: standard, active: true, history_days: 300, average_daily_quote_volume: 25000000}
+  - {canonical_asset: THIN, venue_symbol: THINUSDT, category: standard, active: true, history_days: 1500, average_daily_quote_volume: 100000}

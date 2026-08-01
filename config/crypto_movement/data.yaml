@@ -1,0 +1,18 @@
+schema_version: 1
+mode: fixture
+provider_name: deterministic-fixture-v1
+venue: fixture_venue
+instrument_type: spot
+quote_asset: USDT
+interval: 15m
+page_size: 96
+minimum_request_interval_seconds: 0.0
+cache_path: data/cache/crypto_movement/pages
+raw_path: data/raw/crypto_movement
+manifest_path: outputs/crypto_movement/manifests
+symbols:
+  BTC: BTCUSDT
+  ETH: ETHUSDT
+  ETC: ETCUSDT
+  AVAX: AVAXUSDT
+  SOL: SOLUSDT

@@ -1,0 +1,21 @@
+schema_version: 1
+horizons_hours: [1, 3, 6, 12]
+primary_barrier:
+  kind: arithmetic
+  fraction: 0.04
+  threshold_id: arithmetic_4pct
+auxiliary_barriers:
+  arithmetic_fractions: [0.01, 0.02]
+  volatility_normalized:
+    enabled: true
+    multipliers: [1.0, 2.0]
+label_window:
+  require_complete_bars: true
+  forward_fill: false
+ambiguity:
+  resolution_sources: [one_minute_bars, trades]
+  require_complete_fine_coverage: true
+  unresolved_class: ambiguous
+catalog:
+  default_policies: [retain_ambiguous, exclude_ambiguous]
+  group_by: [symbol, anchor_year, horizon, threshold, class, ambiguity_policy]
