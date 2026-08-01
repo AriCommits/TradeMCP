@@ -1,5 +1,15 @@
 """Venue-aware cryptocurrency market-data collection and storage."""
 
+from crypto_movement.data.bars import (
+    BarLineage,
+    BarPanelBuildResult,
+    ConstituentIdentity,
+    ConstituentProvenance,
+    IncompleteBarPairExclusion,
+    LineagedResampledBar,
+    build_30_minute_bars,
+    build_30_minute_panel,
+)
 from crypto_movement.data.collector import CollectionResult, MarketDataCollector, PageCache
 from crypto_movement.data.manifest import (
     DownloadManifest,
@@ -38,6 +48,14 @@ from crypto_movement.data.universe import (
 )
 
 __all__ = [
+    "BarLineage",
+    "BarPanelBuildResult",
+    "ConstituentIdentity",
+    "ConstituentProvenance",
+    "IncompleteBarPairExclusion",
+    "LineagedResampledBar",
+    "build_30_minute_bars",
+    "build_30_minute_panel",
     "CollectionMode",
     "CollectionResult",
     "DataCollectionConfig",

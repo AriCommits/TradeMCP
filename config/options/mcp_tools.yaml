@@ -1,0 +1,22 @@
+schema_version: options-mcp-tools.v1alpha1
+
+registration:
+  deterministic: true
+  expected_tool_count: 13
+  reject_duplicate_names: true
+
+safety:
+  default_dry_run: true
+  live_order_submission_enabled: false
+  require_explicit_utc_timestamps: true
+  require_unit_assumptions: true
+  require_objective_assumptions: true
+  require_account_assumptions: true
+  require_go_review_for_order_intent: true
+
+artifacts:
+  required_for_long_running_tools: true
+  formats: [json, markdown]
+  content_addressed: true
+  require_correlation_id: true
+  require_run_metadata: true

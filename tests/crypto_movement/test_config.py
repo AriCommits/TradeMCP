@@ -94,6 +94,15 @@ def test_purge_below_maximum_horizon_is_rejected(tmp_path):
         load_pilot_config(path, root=ROOT)
 
 
+def test_fold_gap_must_cover_purge_plus_embargo(tmp_path):
+    payload = yaml.safe_load(PILOT.read_text(encoding="utf-8"))
+    payload["folds"][0]["embargo_hours"] = 1
+    path = tmp_path / "pilot.yaml"
+    path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+    with pytest.raises(ConfigError, match="purge and embargo"):
+        load_pilot_config(path, root=ROOT)
+
+
 def test_missing_required_download_decision_is_rejected(tmp_path):
     payload = yaml.safe_load(PROJECT.read_text(encoding="utf-8"))
     del payload["decisions"]["production_venue"]

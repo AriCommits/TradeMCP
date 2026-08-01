@@ -291,8 +291,9 @@ class FoldWindow:
             raise ConfigError("fold embargo cannot be negative")
         validation_gap = (self.validation_start - self.train_end).total_seconds() / 3600
         test_gap = (self.test_start - self.validation_end).total_seconds() / 3600
-        if validation_gap < self.purge_hours or test_gap < self.purge_hours:
-            raise ConfigError("fold boundaries do not satisfy the declared purge")
+        required_gap = self.purge_hours + self.embargo_hours
+        if validation_gap < required_gap or test_gap < required_gap:
+            raise ConfigError("fold boundaries do not satisfy the declared purge and embargo")
 
 
 @dataclass(frozen=True)

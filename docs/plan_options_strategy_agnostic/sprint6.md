@@ -57,3 +57,14 @@ All mutation-capable tools default to dry-run. Order-intent creation is broker-n
 ## Handoff
 
 - Reviewed trade plans and broker-neutral intents unblock paper broker integration.
+
+## Completion Record
+
+**Status:** Complete
+
+- Added seven typed, read-only market and research MCP tools with injected services, explicit UTC/unit/provenance contracts, and deterministic identities.
+- Added six dry-run decision, comparison, stress, trade-plan, review, and broker-neutral order-intent tools that structurally cannot submit orders.
+- Added unified deterministic registration for all 13 tools and artifact attachment for long-running research and planning responses.
+- Added canonical matching JSON/Markdown reports with selected/rejected alternatives, forecasts, calibration, stresses, capital/payoff, typed evidence, data quality, feature manifests, run metadata, errors, and limitations.
+- Added safe content-addressed artifact persistence and a complete MCP-client acceptance flow with idempotent order-intent results.
+- Validation: 184 Python tests, scoped Ruff and mypy, and 2 Rust tests passed.
