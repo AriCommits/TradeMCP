@@ -1,0 +1,50 @@
+schema_version: 1
+study:
+  name: second_generation_crypto_movement
+  timezone: UTC
+  primary_interval_minutes: 15
+  ablation_interval_minutes: 30
+  sequence_hours: 24
+  horizons_hours: [1, 3, 6, 12]
+  primary_decision_horizon_hours: 6
+  anchor_stride_minutes: 60
+  barrier_fraction: 0.04
+paths:
+  raw: data/raw/crypto_movement
+  interim: data/interim/crypto_movement
+  processed: data/processed/crypto_movement
+  api_cache: data/cache/crypto_movement
+  models: models/crypto_movement
+  outputs: outputs/crypto_movement
+decisions:
+  analysis_timezone: {status: CONFIRMED, value: UTC, source: project_brief, as_of: '2026-08-01', notes: All canonical timestamps are UTC.}
+  anchor_semantics: {status: CONFIRMED, value: completed_candle, source: project_brief, as_of: '2026-08-01', notes: Anchors follow a fully closed candle.}
+  primary_cadence_minutes: {status: CONFIRMED, value: 15, source: project_brief, as_of: '2026-08-01', notes: Primary cadence.}
+  ablation_cadence_minutes: {status: CONFIRMED, value: 30, source: project_brief, as_of: '2026-08-01', notes: Formal cadence ablation.}
+  sequence_hours: {status: CONFIRMED, value: 24, source: project_brief, as_of: '2026-08-01', notes: Recent sequence length.}
+  horizons_hours: {status: CONFIRMED, value: '1,3,6,12', source: project_brief, as_of: '2026-08-01', notes: Separate prediction horizons.}
+  barrier_arithmetic_fraction: {status: CONFIRMED, value: 0.04, source: project_brief, as_of: '2026-08-01', notes: Arithmetic barriers use log(1.04) and log(0.96).}
+  anchor_stride_minutes: {status: CONFIRMED, value: 60, source: project_brief, as_of: '2026-08-01', notes: Initial training stride.}
+  purge_hours: {status: CONFIRMED, value: 12, source: project_brief, as_of: '2026-08-01', notes: Minimum fold purge.}
+  weekend_feature_policy: {status: CONFIRMED, value: excluded_until_frozen_diagnostic, source: project_brief, as_of: '2026-08-01', notes: Weekend variables are excluded from primary training.}
+  production_venue: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Exact venue is required.}
+  venue_api: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: API and access method are required.}
+  instrument_type: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Spot or perpetual must be selected.}
+  venue_pair: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Venue pair mapping is required.}
+  quote_currency: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Quote currency is required.}
+  candle_boundary_convention: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Venue candle convention is required.}
+  maker_fee: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Maker fee is unresolved.}
+  taker_fee: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Taker fee is unresolved.}
+  spread_model: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Spread assumption is unresolved.}
+  slippage_model: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Slippage assumption is unresolved.}
+  funding_history_and_timing: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Required for perpetuals or must be marked not applicable.}
+  prop_trailing_drawdown: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Prop trailing drawdown is unresolved.}
+  prop_intraday_drawdown: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Prop intraday drawdown is unresolved.}
+  prop_end_of_day_drawdown: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Prop end-of-day drawdown is unresolved.}
+  venue_rate_limits: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Rate limits must be documented.}
+  verified_data_coverage: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Intraday coverage must be verified.}
+  fine_resolution_label_data: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: One-minute/trade label resolver availability is unknown.}
+  gap_and_relisting_policy: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Gap and relisting policy must be venue-specific.}
+  point_in_time_universe: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: PIT membership feasibility is unresolved.}
+  final_lockbox_dates: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: Freeze after data coverage is confirmed.}
+  gen1_bundle_location: {status: BLOCKING_FULL_DOWNLOAD, value: null, source: USER_REQUIRED, as_of: '2026-08-01', notes: crypto_weekend_seasonality is not in this repository.}

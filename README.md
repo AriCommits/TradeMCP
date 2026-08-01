@@ -116,3 +116,36 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See the full license text in:
 
 - `LICENSE`
+
+## Second-generation cryptocurrency movement research
+
+The isolated `crypto_movement` package implements the leakage-resistant research plan in
+`docs/plan_1/`. It is a forecasting and validation pipeline, not an automated trading system.
+
+Current status is fixture-only. The full-download gate remains closed until the production venue,
+instrument, candle convention, costs, funding, prop-account drawdown rules, verified coverage,
+lockbox dates, and Gen-1 baseline location are recorded as confirmed in `docs/decision_log.md`.
+Setting a flag cannot bypass these decisions; callers must use
+`ProjectConfig.require_full_download_ready()`.
+
+Inspect the local environment without exposing environment variables or credentials:
+
+```bash
+python scripts/audit_crypto_environment.py --root .
+```
+
+Load the checked-in research configuration:
+
+```python
+from pathlib import Path
+
+from crypto_movement.config import load_pilot_config, load_project_config
+
+root = Path.cwd()
+project = load_project_config(root / "config/crypto_movement/project.yaml", root=root)
+pilot = load_pilot_config(root / "config/crypto_movement/pilot.yaml", root=root)
+print(project.full_download_gate.allowed, pilot.assets)
+```
+
+Raw data, large predictions, and model weights are intentionally excluded from git. Configuration,
+schemas, tests, lightweight manifests, and research reports remain versioned.

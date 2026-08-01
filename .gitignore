@@ -12,3 +12,19 @@ src/trading/data/__pycache__/
 downloads_misc/
 backend/rust_exec_engine/target/
 
+
+# Second-generation crypto movement research (large/recreatable artifacts)
+/data/raw/crypto_movement/
+/data/interim/crypto_movement/
+/data/processed/crypto_movement/
+/data/cache/crypto_movement/
+/api_cache/crypto_movement/
+/models/crypto_movement/**/*.pt
+/models/crypto_movement/**/*.pth
+/models/crypto_movement/**/*.ckpt
+/models/crypto_movement/**/*.safetensors
+/outputs/crypto_movement/predictions/**/*.parquet
+/outputs/crypto_movement/predictions/**/*.npy
+/outputs/crypto_movement/predictions/**/*.npz
+/outputs/crypto_movement/checkpoints/
+
