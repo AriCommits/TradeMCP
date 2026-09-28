@@ -1,0 +1,10 @@
+{
+  "ts": "2026-09-28 15:00:00 CDT",
+  "board": [
+    {"symbol": "XRP", "note": "z spike"}
+  ],
+  "ring": [
+    {"symbol": "XRP", "z": 3.2, "residual": 0.018},
+    {"symbol": "SOL", "z": 4.1, "residual": 0.031}
+  ]
+}

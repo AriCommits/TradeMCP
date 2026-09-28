@@ -22,6 +22,7 @@ Python research + visualization stack with a Rust execution backend.
 - `src/trading/execution_client.py`: Python to Rust bridge
 - `src/trading/backtest.py`: end-to-end orchestration
 - `src/trading/app.py`: Streamlit diagnostics frontend
+- `paper-trades/scripts/scout_wake_context.py`: offline Scout wake-context CLI (regime + short-horizon vol research block; context only, never an order). Requires `--out-dir`; stdlib-only. See `paper-trades/scripts/SCOUT_WAKE_CONTEXT.md`.
 
 ## Quick start
 
