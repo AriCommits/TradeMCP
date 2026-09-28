@@ -1,0 +1,20 @@
+{
+  "ts": "2026-09-28 15:00:00 CDT",
+  "ring": [
+    {
+      "symbol": "XRP",
+      "z": 3.2,
+      "residual": 0.018
+    },
+    {
+      "symbol": "ETH",
+      "z": 2.6,
+      "residual": -0.012
+    },
+    {
+      "symbol": "SOL",
+      "z": 4.1,
+      "residual": 0.031
+    }
+  ]
+}
