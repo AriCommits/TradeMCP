@@ -24,7 +24,17 @@ import sys
 # importable regardless of the caller's working directory.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from scout_context import paths  # noqa: E402  (after sys.path shim)
+from scout_context import (  # noqa: E402  (after sys.path shim)
+    bundle,
+    inject,
+    loaders,
+    paths,
+    regime,
+    render_md,
+    ring_summary,
+    squeeze_overlay,
+    vol_features,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,8 +81,55 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run(args: argparse.Namespace) -> int:
-    """Execute the pipeline. Filled in by Sprint 7 (S9)."""
-    raise NotImplementedError("pipeline wiring lands in Sprint 7 (S9)")
+    """Execute the end-to-end pipeline. Writes only under ``--out-dir``."""
+    out_dir = paths.ensure_out_dir(args.out_dir)
+    root = paths.input_root(args)
+
+    # Output key + ring source, honoring snapshot-over-ts precedence.
+    provenance: dict[str, object] = {}
+    if args.snapshot:
+        key = paths.derive_key(snapshot=args.snapshot)
+        snap = loaders.load_snapshot(root, args.snapshot)
+        ring_data = snap.ring
+        provenance["snapshot"] = os.path.basename(str(args.snapshot))
+        provenance["snapshot_quality"] = list(snap.quality_flags)
+    else:
+        key = paths.derive_key(ts_ct=args.ts_ct)
+        ring_data = loaders.load_ring(root)
+        latest = loaders.load_latest(root)
+        provenance["ts_ct"] = args.ts_ct
+        provenance["latest_alerts"] = latest.get("alerts", [])
+
+    # Market + squeeze inputs (read-only, fail closed).
+    series = loaders.load_ohlcv_5m(root)
+    squeeze = loaders.load_squeeze(root)
+    provenance["input_root"] = str(root) if root else None
+    provenance["symbols"] = list(series.keys())
+
+    # Analysis.
+    regimes = regime.classify_all(series)
+    vol = vol_features.compute_all(series)
+    ring = ring_summary.summarize(ring_data)
+    sq = squeeze_overlay.build(squeeze)
+
+    # Assemble + serialize (both under --out-dir, fenced).
+    ctx = bundle.build_bundle(key, regimes, vol, ring, sq, provenance=provenance)
+    json_path = bundle.write_json(out_dir, ctx)
+    md_path = render_md.write_md(out_dir, ctx)
+
+    # Optional, file-local injection into an explicit review path.
+    injected = None
+    if args.inject_review:
+        injected = inject.inject_review(
+            args.inject_review, render_md.render_block(ctx)
+        )
+
+    print(f"wrote {json_path}")
+    print(f"wrote {md_path}")
+    if args.inject_review:
+        status = "injected" if injected else "already present (no-op)"
+        print(f"inject-review: {status} -> {args.inject_review}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
