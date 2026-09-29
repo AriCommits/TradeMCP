@@ -131,14 +131,23 @@ def test_no_writes_outside_out_dir(tmp_path):
 
 
 def test_no_forbidden_imports():
-    """Source must not import Kraken private/trade or Slack/Composio modules."""
+    """Source must not import Kraken private/trade or Slack/Composio modules.
+
+    Matches real import statements (not prose): the options_desk docstrings
+    legitimately mention 'Composio' to state it is NOT used.
+    """
     import pathlib
+    import re
 
     pkg = pathlib.Path(_SCRIPTS_DIR)
-    forbidden = ("krakenex", "ccxt", "import slack", "composio", "slack_sdk")
+    # import krakenex | import ccxt | from composio ... | import slack_sdk | import slack
+    forbidden_re = re.compile(
+        r"^\s*(?:import|from)\s+(?:krakenex|ccxt|composio|slack_sdk|slack)\b",
+        re.MULTILINE,
+    )
     for py in pkg.rglob("*.py"):
         if "tests" in py.parts:
             continue
-        text = py.read_text(encoding="utf-8").lower()
-        for token in forbidden:
-            assert token not in text, f"{py} references {token!r}"
+        text = py.read_text(encoding="utf-8")
+        m = forbidden_re.search(text)
+        assert m is None, f"{py} has forbidden import: {m.group(0)!r}"
