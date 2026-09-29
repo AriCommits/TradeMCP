@@ -141,10 +141,14 @@ def screen_option_candidates(
     for i in range(max(1, n)):
         # strikes stepped ~2% OTM apart, deterministic
         strike = round(spot * (0.95 - 0.01 * i), 2)
-        credit = round(strike * 0.012, 2)
+        width = 5.0 if s in risk_mod.PCS_STRUCTURES else None
+        if width is not None:
+            # credit spread: credit is a fraction of the width (< width)
+            credit = round(width * 0.30, 2)
+        else:
+            credit = round(strike * 0.012, 2)
         bid = round(credit - 0.05, 2)
         ask = round(credit + 0.05, 2)
-        width = 5.0 if s in risk_mod.PCS_STRUCTURES else None
         candidates.append(
             Candidate(
                 underlying=underlying.upper(),
