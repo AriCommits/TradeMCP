@@ -24,6 +24,7 @@ Python research + visualization stack with a Rust execution backend.
 - `src/trading/app.py`: Streamlit diagnostics frontend
 - `paper-trades/scripts/scout_wake_context.py`: offline Scout wake-context CLI (regime + short-horizon vol research block; context only, never an order). Requires `--out-dir`; stdlib-only. See `paper-trades/scripts/SCOUT_WAKE_CONTEXT.md`.
 - `paper-trades/scripts/options_desk_plan.py` + `options_desk_slack_viz.py`: paper-only Options Desk MVP (screen/compare/stress/plan + 3-panel PNG viz). Requires `--out-dir`; no live brokers, no Slack from the CLI. See `paper-trades/options/KIRO_MVP.md`.
+- `paper-trades/scripts/futures_desk_session.py`: paper-only Futures Desk evening session helper (freezes a marks + Risk$/R board when a paper book is present, always writes a HOLD/TRIM/EXIT session skeleton with commodity kill-line + STOP_POLICY reminders). Requires `--out-dir`; optional `--paper-trades-root` (inputs only) and `--as-of`; stdlib-only, no brokers, no Slack from the CLI. See `docs/plan_4/PLAN4_README.md`.
 
 ## Quick start
 
